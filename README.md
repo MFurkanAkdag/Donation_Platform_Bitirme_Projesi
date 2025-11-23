@@ -1,1 +1,1 @@
-# Ba-_Platformu_Bitirme_Projesi
+# Donation_Platform_Bitirme_Projesi
