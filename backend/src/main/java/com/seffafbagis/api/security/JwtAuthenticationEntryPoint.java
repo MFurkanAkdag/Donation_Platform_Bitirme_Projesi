@@ -61,11 +61,7 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
             HttpServletResponse response,
             AuthenticationException authException) throws IOException {
 
-        // Log
-        logger.warn("Yetkisiz erişim denemesi - Path: {}, IP: {}, Hata: {}",
-                request.getRequestURI(),
-                request.getRemoteAddr(),
-                authException.getMessage());
+        logger.debug("Unauthorized request to {} - {}", request.getRequestURI(), authException.getMessage());
 
         // Response ayarları
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
@@ -91,40 +87,12 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
             AuthenticationException authException) {
 
         Map<String, Object> response = new LinkedHashMap<>();
-
+        response.put("success", false);
+        response.put("error", "UNAUTHORIZED");
+        response.put("message", "Authentication required. Please login.");
         response.put("timestamp", Instant.now().toString());
-        response.put("status", HttpStatus.UNAUTHORIZED.value());
-        response.put("error", "Unauthorized");
-        response.put("message", getErrorMessage(authException));
         response.put("path", request.getRequestURI());
-
         return response;
     }
 
-    /**
-     * Kullanıcı dostu hata mesajı oluşturur.
-     * 
-     * @param authException Authentication hatası
-     * @return Hata mesajı
-     */
-    private String getErrorMessage(AuthenticationException authException) {
-        String originalMessage = authException.getMessage();
-
-        // Teknik hata mesajlarını kullanıcı dostu hale getir
-        if (originalMessage == null) {
-            return "Kimlik doğrulama gerekli. Lütfen giriş yapın.";
-        }
-
-        // Token ile ilgili hatalar
-        if (originalMessage.contains("expired")) {
-            return "Oturum süreniz dolmuş. Lütfen tekrar giriş yapın.";
-        }
-
-        if (originalMessage.contains("invalid") || originalMessage.contains("malformed")) {
-            return "Geçersiz kimlik bilgisi. Lütfen tekrar giriş yapın.";
-        }
-
-        // Genel hata mesajı
-        return "Bu işlem için giriş yapmanız gerekiyor.";
-    }
 }

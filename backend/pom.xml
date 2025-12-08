@@ -123,10 +123,11 @@
             <groupId>org.flywaydb</groupId>
             <artifactId>flyway-core</artifactId>
         </dependency>
-        <dependency>
-            <groupId>org.flywaydb</groupId>
-            <artifactId>flyway-database-postgresql</artifactId>
-        </dependency>
+        <!-- Note: additional DB-specific Flyway artifact removed because it's not required
+             - `flyway-core` (managed by Spring Boot) is sufficient
+             - If you need DB-specific support, use the documented Flyway modules or plugin
+             - Avoid unresolved artifact coordinates like `${flyway.version}` unless defined
+        -->
         
         <!-- HikariCP (Connection Pool - Spring Boot default) -->
         <!-- Already included in spring-boot-starter-data-jpa -->

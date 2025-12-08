@@ -105,6 +105,20 @@ public class User extends BaseEntity {
     @Column(name = "last_login_at")
     private Instant lastLoginAt;
 
+    /**
+     * Başarısız giriş denemeleri.
+     * 5 başarısız denemeden sonra hesap kilitlenir.
+     */
+    @Column(name = "failed_login_attempts", nullable = false)
+    private Integer failedLoginAttempts = 0;
+
+    /**
+     * Hesap kilit açılma zamanı.
+     * 15 dakika boyunca kilidli kalır.
+     */
+    @Column(name = "locked_until")
+    private Instant lockedUntil;
+
     // ==================== İLİŞKİLER ====================
 
     /**
@@ -185,6 +199,26 @@ public class User extends BaseEntity {
         return lastLoginAt;
     }
 
+    public Integer getFailedLoginAttempts() {
+        return failedLoginAttempts != null ? failedLoginAttempts : 0;
+    }
+
+    public Instant getLockedUntil() {
+        return lockedUntil;
+    }
+
+    /**
+     * Checks if account is currently locked.
+     * 
+     * @return true if locked and lockout time hasn't expired
+     */
+    public boolean isAccountLocked() {
+        if (lockedUntil == null) {
+            return false;
+        }
+        return Instant.now().isBefore(lockedUntil);
+    }
+
     public UserProfile getProfile() {
         return profile;
     }
@@ -230,6 +264,40 @@ public class User extends BaseEntity {
 
     public void setLastLoginAt(Instant lastLoginAt) {
         this.lastLoginAt = lastLoginAt;
+    }
+
+    public void setFailedLoginAttempts(Integer failedLoginAttempts) {
+        this.failedLoginAttempts = failedLoginAttempts != null ? failedLoginAttempts : 0;
+    }
+
+    public void setLockedUntil(Instant lockedUntil) {
+        this.lockedUntil = lockedUntil;
+    }
+
+    /**
+     * Increments failed login attempts and locks account if necessary.
+     * 
+     * @return true if account was locked
+     */
+    public boolean incrementFailedLoginAttempts() {
+        if (failedLoginAttempts == null) {
+            failedLoginAttempts = 0;
+        }
+        failedLoginAttempts++;
+        
+        if (failedLoginAttempts >= 5) {
+            this.lockedUntil = Instant.now().plus(java.time.Duration.ofMinutes(15));
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Resets failed login attempts and clears lockout.
+     */
+    public void resetFailedLoginAttempts() {
+        this.failedLoginAttempts = 0;
+        this.lockedUntil = null;
     }
 
     public void setProfile(UserProfile profile) {

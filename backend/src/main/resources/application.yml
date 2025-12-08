@@ -1,0 +1,110 @@
+# =====================================================================
+# Şeffaf Bağış Platformu - Shared Application Configuration
+# Common defaults for all profiles live in this file.
+# =====================================================================
+
+server:
+  port: 8080 # HTTP port exposed by the API server
+  servlet:
+    context-path: /api # Every REST endpoint is served under /api
+    encoding:
+      charset: UTF-8 # Force UTF-8 encoding for requests and responses
+      enabled: true
+      force: true
+
+spring:
+  application:
+    name: seffaf-bagis-api # Service identifier used in logs and tracing
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:dev} # Default profile can be overridden per environment
+
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/seffaf_bagis_db} # PostgreSQL JDBC URL
+    username: ${SPRING_DATASOURCE_USERNAME:postgres} # Database username
+    password: ${SPRING_DATASOURCE_PASSWORD:postgres} # Database password
+    driver-class-name: org.postgresql.Driver # PostgreSQL driver
+    hikari:
+      minimum-idle: 5 # Minimum number of idle connections kept ready
+      maximum-pool-size: 20 # Maximum size of the connection pool
+      idle-timeout: 300000 # Idle timeout in milliseconds (5 minutes)
+
+  jpa:
+    hibernate:
+      ddl-auto: validate # All schema changes are handled via Flyway
+      naming:
+        physical-strategy: org.hibernate.boot.model.naming.CamelCaseToUnderscoresNamingStrategy # Convert camel case to snake case
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect # PostgreSQL dialect for Hibernate
+    open-in-view: false # Prevent Open Session in View to avoid lazy loading surprises
+    show-sql: false # SQL logging is disabled by default, enable per profile if needed
+
+  flyway:
+    enabled: true # Database migrations are enabled
+    locations: classpath:db/migration # Flyway SQL script directory
+    baseline-on-migrate: true # Automatically baseline existing databases
+
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost} # Redis hostname
+      port: ${REDIS_PORT:6379} # Redis port
+      password: ${REDIS_PASSWORD:} # Optional Redis password
+      timeout: 60000 # Redis socket timeout in milliseconds
+  cache:
+    type: redis # Use Redis as cache storage by default
+
+  mail:
+    host: ${MAIL_HOST:smtp.gmail.com} # SMTP server hostname
+    port: ${MAIL_PORT:587} # SMTP server port
+    username: ${MAIL_USERNAME:} # SMTP username
+    password: ${MAIL_PASSWORD:} # SMTP password
+    default-encoding: UTF-8 # Ensure outgoing messages use UTF-8
+    properties:
+      mail:
+        smtp:
+          auth: true # Force SMTP authentication
+          starttls:
+            enable: true # Enable TLS for outgoing mail
+
+  servlet:
+    multipart:
+      max-file-size: 10MB # Maximum per-file upload size
+      max-request-size: 50MB # Maximum combined upload size per request
+
+logging:
+  level:
+    root: INFO # Default logging level for every package
+    com.seffafbagis: INFO # Application specific logging
+    org.hibernate.SQL: WARN # Hibernate SQL logs are suppressed unless needed
+
+springdoc:
+  api-docs:
+    enabled: false # Swagger is enabled only for specific profiles
+  swagger-ui:
+    enabled: false
+
+app:
+  jwt:
+    secret: ${JWT_SECRET:change-me-please-at-least-32-characters-long-secret} # Base64 encoded secret used for signing tokens
+    access-token-expiration: 900000 # Access token lifetime in ms (15 minutes)
+    refresh-token-expiration: 604800000 # Refresh token lifetime in ms (7 days)
+    token-prefix: "Bearer " # Authorization header prefix
+    header-name: Authorization # HTTP header containing JWT tokens
+    issuer: seffaf-bagis-platform # Token issuer claim value
+    audience: seffaf-bagis-clients # Token audience claim value
+
+  encryption:
+    secret-key: ${ENCRYPTION_SECRET_KEY:please-provide-32-char-secret-key} # AES secret key provided via ENV
+    algorithm: AES/GCM/NoPadding # Block cipher mode used for encryption
+
+  cors:
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000} # Allowed origins (comma separated)
+    allowed-methods: GET,POST,PUT,DELETE,PATCH,OPTIONS # Allowed HTTP methods
+    allowed-headers: "*" # Allowed headers on cross origin requests
+    allow-credentials: true # Allow sending credentials (cookies, Authorization header)
+    max-age: 3600 # Preflight cache duration in seconds
+
+  file:
+    upload-dir: ${UPLOAD_DIR:./uploads} # Directory where uploaded files are stored
+  mail:
+    default-from: ${MAIL_FROM:noreply@seffafbagis.org} # Default sender address exposed to the business layer

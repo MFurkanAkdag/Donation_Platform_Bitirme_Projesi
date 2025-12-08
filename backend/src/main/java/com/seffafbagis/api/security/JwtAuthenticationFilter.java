@@ -9,216 +9,102 @@ import org.slf4j.LoggerFactory;
 import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
+import org.springframework.util.AntPathMatcher;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
+import java.util.UUID;
 
 /**
- * JWT Authentication Filter.
- * 
- * Her HTTP isteğinde çalışır ve JWT token'ı doğrular.
- * Geçerli token varsa SecurityContext'e kullanıcıyı ekler.
- * 
- * İşlem akışı:
- * 1. Request'ten Authorization header'ını al
- * 2. "Bearer " prefix'ini kaldır
- * 3. Token'ı doğrula
- * 4. Geçerliyse kullanıcıyı yükle
- * 5. SecurityContext'e authentication ekle
- * 
- * @author Furkan
- * @version 1.0
+ * Intercepts every request, extracts the bearer token, validates it, and populates the SecurityContext.
  */
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
-    private static final Logger logger = LoggerFactory.getLogger(JwtAuthenticationFilter.class);
-
-    /**
-     * Authorization header adı.
-     */
+    private static final Logger LOGGER = LoggerFactory.getLogger(JwtAuthenticationFilter.class);
     private static final String AUTHORIZATION_HEADER = "Authorization";
-
-    /**
-     * Bearer token prefix'i.
-     */
     private static final String BEARER_PREFIX = "Bearer ";
+    private static final AntPathMatcher PATH_MATCHER = new AntPathMatcher();
+
+    private static final List<String> ALWAYS_PUBLIC_PATHS = Arrays.asList(
+            "/api/v1/auth/login",
+            "/api/v1/auth/register",
+            "/api/v1/auth/refresh",
+            "/api/v1/auth/forgot-password",
+            "/api/v1/auth/reset-password",
+            "/api/v1/auth/verify-email",
+            "/api/v1/settings/public",
+            "/v3/api-docs/**",
+            "/swagger-ui/**",
+            "/swagger-resources/**",
+            "/swagger-ui.html",
+            "/actuator/health"
+    );
+
+    private static final List<String> PUBLIC_GET_PATHS = Arrays.asList(
+            "/api/v1/campaigns/**",
+            "/api/v1/organizations/**",
+            "/api/v1/categories/**"
+    );
 
     private final JwtTokenProvider jwtTokenProvider;
-    private final UserDetailsService userDetailsService;
+    private final CustomUserDetailsService userDetailsService;
 
-    /**
-     * Constructor.
-     * 
-     * @param jwtTokenProvider JWT token işlemleri
-     * @param userDetailsService Kullanıcı yükleme servisi
-     */
-    public JwtAuthenticationFilter(JwtTokenProvider jwtTokenProvider, UserDetailsService userDetailsService) {
+    public JwtAuthenticationFilter(JwtTokenProvider jwtTokenProvider, CustomUserDetailsService userDetailsService) {
         this.jwtTokenProvider = jwtTokenProvider;
         this.userDetailsService = userDetailsService;
     }
 
-    /**
-     * Filter metodu - her request'te çalışır.
-     * 
-     * @param request HTTP request
-     * @param response HTTP response
-     * @param filterChain Filter zinciri
-     * @throws ServletException Servlet hatası
-     * @throws IOException IO hatası
-     */
     @Override
-    protected void doFilterInternal(
-            @NonNull HttpServletRequest request,
-            @NonNull HttpServletResponse response,
-            @NonNull FilterChain filterChain) throws ServletException, IOException {
+    protected void doFilterInternal(@NonNull HttpServletRequest request,
+                                    @NonNull HttpServletResponse response,
+                                    @NonNull FilterChain filterChain) throws ServletException, IOException {
 
-        try {
-            // 1. Token'ı al
-            String jwt = extractTokenFromRequest(request);
+        String token = extractTokenFromRequest(request);
 
-            // 2. Token yoksa devam et (public endpoint olabilir)
-            if (jwt == null) {
-                filterChain.doFilter(request, response);
-                return;
+        if (token != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+            if (jwtTokenProvider.validateToken(token) && !jwtTokenProvider.isRefreshToken(token)) {
+                try {
+                    UUID userId = jwtTokenProvider.getUserIdFromToken(token);
+                    CustomUserDetails userDetails = userDetailsService.loadUserById(userId);
+                    UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+                            userDetails,
+                            null,
+                            userDetails.getAuthorities()
+                    );
+                    authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                    SecurityContextHolder.getContext().setAuthentication(authentication);
+                } catch (Exception ex) {
+                    LOGGER.debug("Unable to set security context: {}", ex.getMessage());
+                }
             }
-
-            // 3. Token'ı doğrula
-            boolean isValidToken = jwtTokenProvider.validateToken(jwt);
-            if (!isValidToken) {
-                logger.warn("Geçersiz JWT token - IP: {}", request.getRemoteAddr());
-                filterChain.doFilter(request, response);
-                return;
-            }
-
-            // 4. Access token mı kontrol et
-            boolean isAccessToken = jwtTokenProvider.isAccessToken(jwt);
-            if (!isAccessToken) {
-                logger.warn("Refresh token ile erişim denemesi - IP: {}", request.getRemoteAddr());
-                filterChain.doFilter(request, response);
-                return;
-            }
-
-            // 5. Token'dan e-posta al
-            String email = jwtTokenProvider.extractEmail(jwt);
-            if (email == null) {
-                logger.warn("Token'da email bulunamadı - IP: {}", request.getRemoteAddr());
-                filterChain.doFilter(request, response);
-                return;
-            }
-
-            // 6. Zaten authenticate edilmiş mi kontrol et
-            if (SecurityContextHolder.getContext().getAuthentication() != null) {
-                filterChain.doFilter(request, response);
-                return;
-            }
-
-            // 7. Kullanıcıyı yükle
-            UserDetails userDetails = loadUserDetails(email);
-            if (userDetails == null) {
-                logger.warn("Kullanıcı bulunamadı: {} - IP: {}", email, request.getRemoteAddr());
-                filterChain.doFilter(request, response);
-                return;
-            }
-
-            // 8. Kullanıcı aktif mi kontrol et
-            if (!userDetails.isEnabled()) {
-                logger.warn("Pasif kullanıcı erişim denemesi: {} - IP: {}", email, request.getRemoteAddr());
-                filterChain.doFilter(request, response);
-                return;
-            }
-
-            // 9. Authentication oluştur ve SecurityContext'e ekle
-            setAuthentication(userDetails, request);
-
-            logger.debug("Kullanıcı doğrulandı: {}", email);
-
-        } catch (Exception e) {
-            logger.error("JWT authentication hatası: {}", e.getMessage());
         }
 
-        // Filter zincirini devam ettir
         filterChain.doFilter(request, response);
     }
 
-    /**
-     * Request'ten JWT token'ı çıkarır.
-     * 
-     * Authorization header'ından "Bearer " prefix'ini kaldırır.
-     * 
-     * @param request HTTP request
-     * @return JWT token veya null
-     */
     private String extractTokenFromRequest(HttpServletRequest request) {
         String bearerToken = request.getHeader(AUTHORIZATION_HEADER);
-
-        // Header boş mu kontrol et
-        if (!StringUtils.hasText(bearerToken)) {
+        if (!StringUtils.hasText(bearerToken) || !bearerToken.startsWith(BEARER_PREFIX)) {
             return null;
         }
-
-        // "Bearer " ile başlıyor mu kontrol et
-        if (!bearerToken.startsWith(BEARER_PREFIX)) {
-            return null;
-        }
-
-        // "Bearer " prefix'ini kaldır ve token'ı döndür
         return bearerToken.substring(BEARER_PREFIX.length());
     }
 
-    /**
-     * Kullanıcı detaylarını yükler.
-     * 
-     * @param email Kullanıcı e-postası
-     * @return UserDetails veya null
-     */
-    private UserDetails loadUserDetails(String email) {
-        try {
-            return userDetailsService.loadUserByUsername(email);
-        } catch (Exception e) {
-            logger.error("Kullanıcı yükleme hatası: {}", e.getMessage());
-            return null;
-        }
-    }
-
-    /**
-     * SecurityContext'e authentication ekler.
-     * 
-     * @param userDetails Kullanıcı detayları
-     * @param request HTTP request
-     */
-    private void setAuthentication(UserDetails userDetails, HttpServletRequest request) {
-        UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-                userDetails,
-                null, // Credentials (şifre) gerekmez, token ile doğrulandı
-                userDetails.getAuthorities()
-        );
-
-        // Request detaylarını ekle (IP adresi vb.)
-        authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-
-        // SecurityContext'e ekle
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-    }
-
-    /**
-     * Bu filter'ın hangi request'lerde çalışmayacağını belirler.
-     * 
-     * Şu an tüm request'lerde çalışıyor.
-     * Gerekirse public endpoint'leri buradan exclude edebilirsiniz.
-     * 
-     * @param request HTTP request
-     * @return false (tüm request'lerde çalışsın)
-     */
     @Override
     protected boolean shouldNotFilter(@NonNull HttpServletRequest request) {
-        // Tüm request'lerde çalışsın
-        // Token yoksa filter otomatik olarak pas geçecek
+        String path = request.getRequestURI();
+        if (ALWAYS_PUBLIC_PATHS.stream().anyMatch(pattern -> PATH_MATCHER.match(pattern, path))) {
+            return true;
+        }
+        if ("GET".equalsIgnoreCase(request.getMethod())) {
+            return PUBLIC_GET_PATHS.stream().anyMatch(pattern -> PATH_MATCHER.match(pattern, path));
+        }
         return false;
     }
 }

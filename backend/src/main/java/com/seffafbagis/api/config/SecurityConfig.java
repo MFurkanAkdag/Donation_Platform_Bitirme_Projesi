@@ -1,5 +1,6 @@
 package com.seffafbagis.api.config;
 
+import com.seffafbagis.api.security.CustomUserDetailsService;
 import com.seffafbagis.api.security.JwtAuthenticationEntryPoint;
 import com.seffafbagis.api.security.JwtAuthenticationFilter;
 import org.springframework.context.annotation.Bean;
@@ -8,13 +9,13 @@ import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -40,7 +41,7 @@ public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
-    private final UserDetailsService userDetailsService;
+    private final CustomUserDetailsService userDetailsService;
 
     /**
      * Constructor injection kullanıyoruz.
@@ -52,7 +53,7 @@ public class SecurityConfig {
     public SecurityConfig(
             JwtAuthenticationFilter jwtAuthenticationFilter,
             JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint,
-            UserDetailsService userDetailsService) {
+            CustomUserDetailsService userDetailsService) {
         
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
         this.jwtAuthenticationEntryPoint = jwtAuthenticationEntryPoint;
@@ -64,22 +65,18 @@ public class SecurityConfig {
      * Bu endpoint'ler için JWT token gerekmez.
      */
     private static final String[] PUBLIC_ENDPOINTS = {
-        // Auth işlemleri
-        "/api/v1/auth/login",
         "/api/v1/auth/register",
-        "/api/v1/auth/refresh-token",
+        "/api/v1/auth/login",
+        "/api/v1/auth/refresh",
         "/api/v1/auth/forgot-password",
         "/api/v1/auth/reset-password",
         "/api/v1/auth/verify-email",
-        
-        // Sağlık kontrolü
-        "/actuator/health",
-        "/actuator/info",
-        
-        // API dokümantasyonu
+        "/api/v1/settings/public",
         "/v3/api-docs/**",
         "/swagger-ui/**",
-        "/swagger-ui.html"
+        "/swagger-resources/**",
+        "/swagger-ui.html",
+        "/actuator/health"
     };
 
     /**
@@ -87,14 +84,17 @@ public class SecurityConfig {
      * Kampanya ve vakıf listeleme herkes tarafından görülebilir.
      */
     private static final String[] PUBLIC_GET_ENDPOINTS = {
-        "/api/v1/campaigns",
         "/api/v1/campaigns/**",
-        "/api/v1/organizations",
         "/api/v1/organizations/**",
-        "/api/v1/categories",
-        "/api/v1/categories/**",
-        "/api/v1/donation-types",
-        "/api/v1/donation-types/**"
+        "/api/v1/categories/**"
+    };
+
+    private static final String[] ADMIN_ENDPOINTS = {
+        "/api/v1/admin/**"
+    };
+
+    private static final String[] FOUNDATION_ENDPOINTS = {
+        "/api/v1/foundation/**"
     };
 
     /**
@@ -107,49 +107,20 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         
-        // CSRF korumasını devre dışı bırak
-        // REST API'lerde CSRF gerekli değil çünkü token tabanlı auth kullanıyoruz
-        http.csrf(AbstractHttpConfigurer::disable);
-        
-        // Session yönetimini stateless yap
-        // Her request kendi JWT token'ı ile gelecek, server'da session tutulmayacak
-        http.sessionManagement(session -> {
-            session.sessionCreationPolicy(SessionCreationPolicy.STATELESS);
-        });
-        
-        // Yetkisiz erişim durumunda ne yapılacağını belirle
-        http.exceptionHandling(exception -> {
-            exception.authenticationEntryPoint(jwtAuthenticationEntryPoint);
-        });
-        
-        // Endpoint yetkilendirme kuralları
-        http.authorizeHttpRequests(auth -> {
-            // Public endpoint'ler - herkes erişebilir
-            auth.requestMatchers(PUBLIC_ENDPOINTS).permitAll();
-            
-            // GET istekleri için public endpoint'ler
-            auth.requestMatchers(HttpMethod.GET, PUBLIC_GET_ENDPOINTS).permitAll();
-            
-            // Admin endpoint'leri - sadece ADMIN rolü
-            auth.requestMatchers("/api/v1/admin/**").hasRole("ADMIN");
-            
-            // Vakıf endpoint'leri - sadece FOUNDATION rolü
-            auth.requestMatchers("/api/v1/foundation/**").hasRole("FOUNDATION");
-            
-            // Bağış yapma - giriş yapmış herkes (DONOR, FOUNDATION, ADMIN)
-            auth.requestMatchers(HttpMethod.POST, "/api/v1/donations/**").authenticated();
-            
-            // Diğer tüm endpoint'ler - giriş gerekli
-            auth.anyRequest().authenticated();
-        });
-        
-        // Authentication provider'ı ayarla
-        http.authenticationProvider(authenticationProvider());
-        
-        // JWT filtresini UsernamePasswordAuthenticationFilter'dan önce ekle
-        // Bu sayede her request'te önce JWT kontrol edilir
-        http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
-        
+        http
+            .csrf(AbstractHttpConfigurer::disable)
+            .cors(Customizer.withDefaults())
+            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            .exceptionHandling(exception -> exception.authenticationEntryPoint(jwtAuthenticationEntryPoint))
+            .authorizeHttpRequests(auth -> auth
+                .requestMatchers(PUBLIC_ENDPOINTS).permitAll()
+                .requestMatchers(HttpMethod.GET, PUBLIC_GET_ENDPOINTS).permitAll()
+                .requestMatchers(ADMIN_ENDPOINTS).hasRole("ADMIN")
+                .requestMatchers(FOUNDATION_ENDPOINTS).hasRole("FOUNDATION")
+                .anyRequest().authenticated())
+            .authenticationProvider(authenticationProvider())
+            .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+
         return http.build();
     }
 

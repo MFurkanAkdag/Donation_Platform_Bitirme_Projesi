@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
+import java.util.UUID;
 
 /**
  * Spring Security UserDetailsService implementasyonu.
@@ -72,6 +73,21 @@ public class CustomUserDetailsService implements UserDetailsService {
         logger.debug("Kullanıcı yüklendi: {}", normalizedEmail);
 
         // CustomUserDetails nesnesine dönüştür
-        return new CustomUserDetails(user);
+        return CustomUserDetails.fromUser(user);
+    }
+
+    /**
+     * Loads a user by database identifier. Used by JWT filter after parsing token subject.
+     *
+     * @param userId user identifier
+     * @return user details
+     */
+    @Transactional(readOnly = true)
+    public CustomUserDetails loadUserById(UUID userId) {
+        Optional<User> userOptional = userRepository.findById(userId);
+        if (userOptional.isEmpty()) {
+            throw new UsernameNotFoundException("Kullanıcı bulunamadı: " + userId);
+        }
+        return CustomUserDetails.fromUser(userOptional.get());
     }
 }

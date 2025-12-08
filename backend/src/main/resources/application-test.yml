@@ -1,0 +1,41 @@
+# =====================================================================
+# Test profile overrides
+# The goal is to keep tests isolated via in-memory infrastructure.
+# =====================================================================
+
+spring:
+  datasource:
+    url: jdbc:h2:mem:seffafbagis;MODE=PostgreSQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE # In-memory H2 database that behaves like PostgreSQL
+    driver-class-name: org.h2.Driver # H2 JDBC driver
+    username: sa # Default H2 username
+    password: # No password for embedded H2
+  jpa:
+    hibernate:
+      ddl-auto: create-drop # Create schema for every test run and clean afterwards
+    show-sql: true # Log SQL to help debugging tests
+    properties:
+      hibernate:
+        format_sql: true # Pretty print SQL output
+        dialect: org.hibernate.dialect.H2Dialect # Force Hibernate to use the H2 dialect
+  flyway:
+    enabled: false # Disable Flyway in tests because schema is created by Hibernate
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.redis.RedisRepositoriesAutoConfiguration
+  cache:
+    type: simple # Use a simple concurrent map cache for deterministic behavior
+
+logging:
+  level:
+    org.hibernate.SQL: DEBUG # Keep SQL visible while running tests
+
+springdoc:
+  api-docs:
+    enabled: true # API docs can be used by integration tests if needed
+  swagger-ui:
+    enabled: true
+
+app:
+  cors:
+    allowed-origins: http://localhost:3000 # Tests usually target localhost clients

@@ -1,157 +1,89 @@
 package com.seffafbagis.api.config;
 
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.validation.annotation.Validated;
-
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.bind.ConstructorBinding;
+import org.springframework.boot.context.properties.bind.DefaultValue;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.validation.annotation.Validated;
 
 /**
- * JWT (JSON Web Token) yapılandırma sınıfı.
- * 
- * application.yml'daki app.jwt altındaki değerleri okur.
- * 
- * GÜVENLİK NOTLARI:
- * - Secret key en az 256 bit (32 karakter) olmalı
- * - Secret key'i asla kod içinde hard-coded tutmayın
- * - Environment variable veya secret manager kullanın
- * 
- * @author Furkan
- * @version 1.0
+ * Binds JWT related configuration from {@code app.jwt.*} properties in a type-safe manner.
  */
 @Configuration
 @ConfigurationProperties(prefix = "app.jwt")
+@ConstructorBinding
 @Validated
 public class JwtConfig {
 
-    /**
-     * JWT imzalama için gizli anahtar.
-     * 
-     * ÖNEMLİ:
-     * - En az 32 karakter (256 bit) olmalı
-     * - Rastgele ve tahmin edilemez olmalı
-     * - Production'da environment variable kullanın
-     */
-    @NotBlank(message = "JWT secret boş olamaz")
-    @Size(min = 32, message = "JWT secret en az 32 karakter olmalı")
-    private String secret;
+    private final String secret;
+    private final long accessTokenExpiration;
+    private final long refreshTokenExpiration;
+    private final String tokenPrefix;
+    private final String headerName;
+    private final String issuer;
+    private final String audience;
 
-    /**
-     * Access token geçerlilik süresi (milisaniye).
-     * 
-     * Önerilen değerler:
-     * - 15 dakika = 900000 ms
-     * - 30 dakika = 1800000 ms
-     * - 1 saat = 3600000 ms
-     * 
-     * Kısa tutmak güvenlik açısından daha iyidir.
-     */
-    @Min(value = 60000, message = "Access token süresi en az 1 dakika olmalı")
-    private long accessTokenExpiration = 900000; // 15 dakika
-
-    /**
-     * Refresh token geçerlilik süresi (milisaniye).
-     * 
-     * Önerilen değerler:
-     * - 7 gün = 604800000 ms
-     * - 30 gün = 2592000000 ms
-     * 
-     * Access token'dan uzun olmalı.
-     */
-    @Min(value = 3600000, message = "Refresh token süresi en az 1 saat olmalı")
-    private long refreshTokenExpiration = 604800000; // 7 gün
-
-    /**
-     * Token'ı oluşturan kurum/uygulama.
-     * Token doğrulama sırasında kontrol edilir.
-     */
-    private String issuer = "seffaf-bagis-api";
-
-    /**
-     * Token'ın hedef kitlesi.
-     * Hangi uygulamalar için geçerli olduğunu belirtir.
-     */
-    private String audience = "seffaf-bagis-web";
-
-    // ==================== GETTER VE SETTER METODLARI ====================
+    public JwtConfig(
+            @NotBlank @Size(min = 32, message = "JWT secret must be at least 32 characters long") String secret,
+            @Min(value = 60000, message = "Access token expiration must be at least 1 minute") @DefaultValue("900000") long accessTokenExpiration,
+            @Min(value = 3600000, message = "Refresh token expiration must be at least 1 hour") @DefaultValue("604800000") long refreshTokenExpiration,
+            @NotBlank @DefaultValue("Bearer ") String tokenPrefix,
+            @NotBlank @DefaultValue("Authorization") String headerName,
+            @NotBlank @DefaultValue("seffaf-bagis-platform") String issuer,
+            @NotBlank @DefaultValue("seffaf-bagis-clients") String audience) {
+        this.secret = secret;
+        this.accessTokenExpiration = accessTokenExpiration;
+        this.refreshTokenExpiration = refreshTokenExpiration;
+        this.tokenPrefix = tokenPrefix;
+        this.headerName = headerName;
+        this.issuer = issuer;
+        this.audience = audience;
+    }
 
     public String getSecret() {
         return secret;
-    }
-
-    public void setSecret(String secret) {
-        this.secret = secret;
     }
 
     public long getAccessTokenExpiration() {
         return accessTokenExpiration;
     }
 
-    public void setAccessTokenExpiration(long accessTokenExpiration) {
-        this.accessTokenExpiration = accessTokenExpiration;
-    }
-
     public long getRefreshTokenExpiration() {
         return refreshTokenExpiration;
     }
 
-    public void setRefreshTokenExpiration(long refreshTokenExpiration) {
-        this.refreshTokenExpiration = refreshTokenExpiration;
+    public String getTokenPrefix() {
+        return tokenPrefix;
+    }
+
+    public String getHeaderName() {
+        return headerName;
     }
 
     public String getIssuer() {
         return issuer;
     }
 
-    public void setIssuer(String issuer) {
-        this.issuer = issuer;
-    }
-
     public String getAudience() {
         return audience;
     }
 
-    public void setAudience(String audience) {
-        this.audience = audience;
-    }
-
-    // ==================== YARDIMCI METODLAR ====================
-
-    /**
-     * Access token süresini saniye cinsinden döndürür.
-     * 
-     * @return Access token süresi (saniye)
-     */
     public long getAccessTokenExpirationInSeconds() {
         return accessTokenExpiration / 1000;
     }
 
-    /**
-     * Refresh token süresini saniye cinsinden döndürür.
-     * 
-     * @return Refresh token süresi (saniye)
-     */
-    public long getRefreshTokenExpirationInSeconds() {
-        return refreshTokenExpiration / 1000;
-    }
-
-    /**
-     * Access token süresini dakika cinsinden döndürür.
-     * 
-     * @return Access token süresi (dakika)
-     */
     public long getAccessTokenExpirationInMinutes() {
         return accessTokenExpiration / 60000;
     }
 
-    /**
-     * Refresh token süresini gün cinsinden döndürür.
-     * 
-     * @return Refresh token süresi (gün)
-     */
+    public long getRefreshTokenExpirationInSeconds() {
+        return refreshTokenExpiration / 1000;
+    }
+
     public long getRefreshTokenExpirationInDays() {
-        return refreshTokenExpiration / 86400000;
+        return refreshTokenExpiration / 86_400_000;
     }
 }

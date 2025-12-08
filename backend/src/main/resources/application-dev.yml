@@ -1,0 +1,32 @@
+# =====================================================================
+# Development profile overrides
+# Only values that differ from the shared application.yml live in here.
+# =====================================================================
+
+spring:
+  jpa:
+    show-sql: true # Show SQL when running locally for easier debugging
+    properties:
+      hibernate:
+        format_sql: true # Pretty print SQL output in the logs
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost} # Ensure local Redis host is used when overriding profiles
+
+logging:
+  level:
+    root: INFO # Keep default info logging for dependencies
+    com.seffafbagis: DEBUG # Verbose logs for the application package
+    org.hibernate.SQL: DEBUG # Log the executed SQL statements
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE # Log SQL parameter bindings for troubleshooting
+
+springdoc:
+  api-docs:
+    enabled: true # Enable OpenAPI docs in dev profile
+  swagger-ui:
+    enabled: true # Enable Swagger UI for manual testing
+
+app:
+  cors:
+    allowed-origins: http://localhost:3000,http://127.0.0.1:3000 # Allow both localhost notations for the frontend during development
+

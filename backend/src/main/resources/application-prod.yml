@@ -1,0 +1,44 @@
+# =====================================================================
+# Production profile overrides
+# Sensitive values come from environment variables.
+# =====================================================================
+
+spring:
+  jpa:
+    show-sql: false # Never log SQL in production
+  datasource:
+    hikari:
+      minimum-idle: 10 # Keep more idle connections ready for traffic spikes
+      maximum-pool-size: 50 # Allow higher total concurrent DB connections
+
+logging:
+  level:
+    root: WARN # Only log warnings and errors in production
+    com.seffafbagis: WARN
+    org.hibernate.SQL: WARN
+
+springdoc:
+  api-docs:
+    enabled: false # Disable swagger endpoints in production
+  swagger-ui:
+    enabled: false
+
+server:
+  servlet:
+    session:
+      cookie:
+        secure: true # Force secure cookies
+        http-only: true # Prevent scripts from accessing cookies
+        same-site: strict # Do not send cookies for cross-site requests
+  forward-headers-strategy: native # Respect proxy headers in containerized deployments
+
+app:
+  cors:
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:https://app.seffafbagis.org} # Restrict origins in production
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info # Only expose safe actuator endpoints
+

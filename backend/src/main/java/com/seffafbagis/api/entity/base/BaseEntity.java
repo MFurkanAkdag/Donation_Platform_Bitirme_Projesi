@@ -1,167 +1,82 @@
 package com.seffafbagis.api.entity.base;
 
 import jakarta.persistence.Column;
+import jakarta.persistence.EntityListeners;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.MappedSuperclass;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
+import java.io.Serial;
 import java.io.Serializable;
-import java.time.Instant;
+import java.time.OffsetDateTime;
 import java.util.Objects;
 import java.util.UUID;
 
 /**
- * Tüm entity'lerin temel sınıfı.
- * 
- * Bu sınıf şu ortak alanları sağlar:
- * - id: Benzersiz tanımlayıcı (UUID)
- * - createdAt: Oluşturulma tarihi
- * - updatedAt: Son güncelleme tarihi
- * 
- * @MappedSuperclass: Bu sınıf için ayrı tablo oluşturulmaz,
- * alanları alt sınıflara miras kalır.
- * 
- * @author Furkan
- * @version 1.0
+ * Base JPA entity that provides a UUID primary key and auditing timestamps.
  */
 @MappedSuperclass
+@EntityListeners(AuditingEntityListener.class)
 public abstract class BaseEntity implements Serializable {
 
+    @Serial
     private static final long serialVersionUID = 1L;
 
-    /**
-     * Benzersiz tanımlayıcı.
-     * 
-     * UUID kullanıyoruz çünkü:
-     * - Dağıtık sistemlerde çakışma riski yok
-     * - Tahmin edilemez (güvenlik)
-     * - Veritabanı bağımsız
-     */
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "id", updatable = false, nullable = false)
-    private UUID id;
+    protected UUID id;
 
-    /**
-     * Oluşturulma tarihi.
-     * 
-     * @CreationTimestamp: Kayıt ilk oluşturulduğunda otomatik set edilir.
-     * updatable = false: Sonradan değiştirilemez.
-     */
-    @CreationTimestamp
-    @Column(name = "created_at", nullable = false, updatable = false)
-    private Instant createdAt;
+    @CreatedDate
+    @Column(name = "created_at", nullable = false, updatable = false, columnDefinition = "TIMESTAMPTZ")
+    protected OffsetDateTime createdAt;
 
-    /**
-     * Son güncelleme tarihi.
-     * 
-     * @UpdateTimestamp: Her güncelleme işleminde otomatik set edilir.
-     */
-    @UpdateTimestamp
-    @Column(name = "updated_at")
-    private Instant updatedAt;
-
-    // ==================== GETTER METODLARI ====================
+    @LastModifiedDate
+    @Column(name = "updated_at", columnDefinition = "TIMESTAMPTZ")
+    protected OffsetDateTime updatedAt;
 
     public UUID getId() {
         return id;
     }
 
-    public Instant getCreatedAt() {
+    public OffsetDateTime getCreatedAt() {
         return createdAt;
     }
 
-    public Instant getUpdatedAt() {
+    public OffsetDateTime getUpdatedAt() {
         return updatedAt;
     }
 
-    // ==================== SETTER METODLARI ====================
-
-    /**
-     * ID setter'ı protected çünkü:
-     * - ID genellikle otomatik üretilir
-     * - Dışarıdan değiştirilmemeli
-     * - Sadece test veya özel durumlar için
-     */
     protected void setId(UUID id) {
         this.id = id;
     }
 
-    /**
-     * CreatedAt setter'ı protected.
-     * Normalde Hibernate tarafından otomatik set edilir.
-     */
-    protected void setCreatedAt(Instant createdAt) {
+    protected void setCreatedAt(OffsetDateTime createdAt) {
         this.createdAt = createdAt;
     }
 
-    /**
-     * UpdatedAt setter'ı protected.
-     * Normalde Hibernate tarafından otomatik set edilir.
-     */
-    protected void setUpdatedAt(Instant updatedAt) {
+    protected void setUpdatedAt(OffsetDateTime updatedAt) {
         this.updatedAt = updatedAt;
     }
 
-    // ==================== EQUALS VE HASHCODE ====================
-
-    /**
-     * İki entity'nin eşit olup olmadığını kontrol eder.
-     * 
-     * ID üzerinden karşılaştırma yapar.
-     * ID null ise referans eşitliği kontrol edilir.
-     */
     @Override
     public boolean equals(Object obj) {
-        // Aynı referans mı?
         if (this == obj) {
             return true;
         }
-
-        // Null veya farklı sınıf mı?
         if (obj == null || getClass() != obj.getClass()) {
             return false;
         }
-
         BaseEntity other = (BaseEntity) obj;
-
-        // ID null ise eşit değildir (yeni, kaydedilmemiş entity)
-        if (id == null || other.id == null) {
-            return false;
-        }
-
-        // ID'leri karşılaştır
-        return id.equals(other.id);
+        return id != null && id.equals(other.id);
     }
 
-    /**
-     * Hash code hesaplar.
-     * 
-     * ID bazlı hash code kullanılır.
-     * ID null ise sabit bir değer döner.
-     */
     @Override
     public int hashCode() {
-        // ID null ise sabit değer döndür
-        // Bu, yeni entity'lerin Set'e eklenebilmesini sağlar
-        if (id == null) {
-            return getClass().hashCode();
-        }
-        return Objects.hash(id);
-    }
-
-    /**
-     * String temsilini döndürür.
-     */
-    @Override
-    public String toString() {
-        return getClass().getSimpleName() + "{" +
-                "id=" + id +
-                ", createdAt=" + createdAt +
-                ", updatedAt=" + updatedAt +
-                '}';
+        return Objects.hashCode(id);
     }
 }

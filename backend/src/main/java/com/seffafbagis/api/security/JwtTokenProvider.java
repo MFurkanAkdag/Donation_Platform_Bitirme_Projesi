@@ -1,363 +1,185 @@
 package com.seffafbagis.api.security;
 
 import com.seffafbagis.api.config.JwtConfig;
+import com.seffafbagis.api.enums.UserRole;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
-import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.UnsupportedJwtException;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
-import io.jsonwebtoken.security.SignatureException;
+import io.jsonwebtoken.security.SecurityException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.UUID;
-import java.util.function.Function;
 
 /**
- * JWT Token oluşturma ve doğrulama sınıfı.
- * 
- * Bu sınıf şunları sağlar:
- * - Access token oluşturma
- * - Refresh token oluşturma
- * - Token doğrulama
- * - Token'dan bilgi çıkarma
- * 
- * JWT Yapısı:
- * - Header: Algoritma bilgisi (HS256)
- * - Payload: Kullanıcı bilgileri (claims)
- * - Signature: İmza (secret key ile)
- * 
- * GÜVENLİK NOTLARI:
- * - Secret key en az 256 bit olmalı
- * - Token sürelerini kısa tutun
- * - Refresh token'ları veritabanında saklayın
- * 
- * @author Furkan
- * @version 1.0
+ * Generates, validates, and parses JWT tokens used by the platform.
  */
 @Component
 public class JwtTokenProvider {
 
-    private static final Logger logger = LoggerFactory.getLogger(JwtTokenProvider.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(JwtTokenProvider.class);
+
+    private static final String CLAIM_EMAIL = "email";
+    private static final String CLAIM_ROLE = "role";
+    private static final String CLAIM_TOKEN_TYPE = "type";
+    private static final String TOKEN_TYPE_REFRESH = "refresh";
 
     private final JwtConfig jwtConfig;
     private final SecretKey secretKey;
 
-    /**
-     * Token içindeki rol claim adı.
-     */
-    private static final String CLAIM_ROLE = "role";
-
-    /**
-     * Token içindeki kullanıcı ID claim adı.
-     */
-    private static final String CLAIM_USER_ID = "userId";
-
-    /**
-     * Token tipi claim adı.
-     */
-    private static final String CLAIM_TOKEN_TYPE = "type";
-
-    /**
-     * Access token tipi.
-     */
-    private static final String TOKEN_TYPE_ACCESS = "access";
-
-    /**
-     * Refresh token tipi.
-     */
-    private static final String TOKEN_TYPE_REFRESH = "refresh";
-
-    /**
-     * Constructor.
-     * 
-     * @param jwtConfig JWT yapılandırması
-     */
     public JwtTokenProvider(JwtConfig jwtConfig) {
         this.jwtConfig = jwtConfig;
-        this.secretKey = createSecretKey();
+        this.secretKey = Keys.hmacShaKeyFor(Decoders.BASE64.decode(jwtConfig.getSecret()));
     }
 
     /**
-     * Secret key oluşturur.
-     * 
-     * Base64 encoded string'den SecretKey oluşturur.
-     * 
-     * @return SecretKey
+     * Builds an access token containing user identity information.
      */
-    private SecretKey createSecretKey() {
-        byte[] keyBytes = Decoders.BASE64.decode(jwtConfig.getSecret());
-        return Keys.hmacShaKeyFor(keyBytes);
-    }
-
-    // ==================== TOKEN OLUŞTURMA ====================
-
-    /**
-     * Access token oluşturur.
-     * 
-     * @param userId Kullanıcı ID
-     * @param email Kullanıcı e-posta
-     * @param role Kullanıcı rolü
-     * @return JWT access token
-     */
-    public String generateAccessToken(UUID userId, String email, String role) {
-        Map<String, Object> claims = new HashMap<>();
-        claims.put(CLAIM_USER_ID, userId.toString());
-        claims.put(CLAIM_ROLE, role);
-        claims.put(CLAIM_TOKEN_TYPE, TOKEN_TYPE_ACCESS);
-
-        return buildToken(claims, email, jwtConfig.getAccessTokenExpiration());
-    }
-
-    /**
-     * Refresh token oluşturur.
-     * 
-     * @param userId Kullanıcı ID
-     * @param email Kullanıcı e-posta
-     * @return JWT refresh token
-     */
-    public String generateRefreshToken(UUID userId, String email) {
-        Map<String, Object> claims = new HashMap<>();
-        claims.put(CLAIM_USER_ID, userId.toString());
-        claims.put(CLAIM_TOKEN_TYPE, TOKEN_TYPE_REFRESH);
-
-        return buildToken(claims, email, jwtConfig.getRefreshTokenExpiration());
-    }
-
-    /**
-     * Token oluşturur.
-     * 
-     * @param claims Token içindeki bilgiler
-     * @param subject Token sahibi (genellikle email)
-     * @param expirationMs Token süresi (milisaniye)
-     * @return JWT token
-     */
-    private String buildToken(Map<String, Object> claims, String subject, long expirationMs) {
+    public String generateAccessToken(CustomUserDetails userDetails) {
         Date now = new Date();
-        Date expiryDate = new Date(now.getTime() + expirationMs);
+        Date expiry = new Date(now.getTime() + jwtConfig.getAccessTokenExpiration());
 
         return Jwts.builder()
-                .claims(claims)
-                .subject(subject)
+                .subject(userDetails.getId().toString())
+                .claim(CLAIM_EMAIL, userDetails.getUsername())
+                .claim(CLAIM_ROLE, userDetails.getRole().name())
+                .claim(CLAIM_TOKEN_TYPE, "access")
                 .issuer(jwtConfig.getIssuer())
                 .audience().add(jwtConfig.getAudience()).and()
                 .issuedAt(now)
-                .expiration(expiryDate)
-                .signWith(secretKey, Jwts.SIG.HS256)
+                .expiration(expiry)
+                .signWith(secretKey, Jwts.SIG.HS512)
                 .compact();
     }
 
-    // ==================== TOKEN DOĞRULAMA ====================
+    /**
+     * Builds an access token with user UUID, email, and role.
+     * Overloaded variant for cases where CustomUserDetails is not available.
+     */
+    public String generateAccessToken(UUID userId, String email, String roleName) {
+        Date now = new Date();
+        Date expiry = new Date(now.getTime() + jwtConfig.getAccessTokenExpiration());
+
+        return Jwts.builder()
+                .subject(userId.toString())
+                .claim(CLAIM_EMAIL, email)
+                .claim(CLAIM_ROLE, roleName)
+                .claim(CLAIM_TOKEN_TYPE, "access")
+                .issuer(jwtConfig.getIssuer())
+                .audience().add(jwtConfig.getAudience()).and()
+                .issuedAt(now)
+                .expiration(expiry)
+                .signWith(secretKey, Jwts.SIG.HS512)
+                .compact();
+    }
 
     /**
-     * Token'ın geçerli olup olmadığını kontrol eder.
-     * 
-     * @param token JWT token
-     * @return Geçerli ise true
+     * Builds a refresh token with minimal claims.
+     */
+    public String generateRefreshToken(CustomUserDetails userDetails) {
+        Date now = new Date();
+        Date expiry = new Date(now.getTime() + jwtConfig.getRefreshTokenExpiration());
+
+        return Jwts.builder()
+                .subject(userDetails.getId().toString())
+                .claim(CLAIM_TOKEN_TYPE, TOKEN_TYPE_REFRESH)
+                .issuer(jwtConfig.getIssuer())
+                .audience().add(jwtConfig.getAudience()).and()
+                .issuedAt(now)
+                .expiration(expiry)
+                .signWith(secretKey, Jwts.SIG.HS512)
+                .compact();
+    }
+
+    /**
+     * Builds a refresh token with user UUID.
+     * Overloaded variant for cases where CustomUserDetails is not available.
+     */
+    public String generateRefreshToken(UUID userId, String email) {
+        Date now = new Date();
+        Date expiry = new Date(now.getTime() + jwtConfig.getRefreshTokenExpiration());
+
+        return Jwts.builder()
+                .subject(userId.toString())
+                .claim(CLAIM_TOKEN_TYPE, TOKEN_TYPE_REFRESH)
+                .issuer(jwtConfig.getIssuer())
+                .audience().add(jwtConfig.getAudience()).and()
+                .issuedAt(now)
+                .expiration(expiry)
+                .signWith(secretKey, Jwts.SIG.HS512)
+                .compact();
+    }
+
+    /**
+     * Validates structure, signature, and expiration of a token.
      */
     public boolean validateToken(String token) {
         try {
-            Jwts.parser()
-                    .verifyWith(secretKey)
-                    .build()
-                    .parseSignedClaims(token);
+            parseClaims(token);
             return true;
-
-        } catch (SignatureException e) {
-            logger.error("Geçersiz JWT imzası: {}", e.getMessage());
-
-        } catch (MalformedJwtException e) {
-            logger.error("Geçersiz JWT formatı: {}", e.getMessage());
-
-        } catch (ExpiredJwtException e) {
-            logger.error("JWT token süresi dolmuş: {}", e.getMessage());
-
-        } catch (UnsupportedJwtException e) {
-            logger.error("Desteklenmeyen JWT token: {}", e.getMessage());
-
-        } catch (IllegalArgumentException e) {
-            logger.error("JWT claims boş: {}", e.getMessage());
-
-        } catch (JwtException e) {
-            logger.error("JWT doğrulama hatası: {}", e.getMessage());
+        } catch (ExpiredJwtException ex) {
+            LOGGER.debug("JWT expired: {}", ex.getMessage());
+        } catch (MalformedJwtException ex) {
+            LOGGER.debug("JWT malformed: {}", ex.getMessage());
+        } catch (UnsupportedJwtException ex) {
+            LOGGER.debug("JWT unsupported: {}", ex.getMessage());
+        } catch (SecurityException ex) {
+            LOGGER.debug("JWT signature invalid: {}", ex.getMessage());
+        } catch (IllegalArgumentException ex) {
+            LOGGER.debug("JWT empty: {}", ex.getMessage());
         }
-
         return false;
     }
 
     /**
-     * Token'ın access token olup olmadığını kontrol eder.
-     * 
-     * @param token JWT token
-     * @return Access token ise true
+     * Returns raw claims for the token.
      */
-    public boolean isAccessToken(String token) {
-        String tokenType = extractClaim(token, claims -> claims.get(CLAIM_TOKEN_TYPE, String.class));
-        return TOKEN_TYPE_ACCESS.equals(tokenType);
+    public Claims getClaims(String token) {
+        return parseClaims(token);
     }
 
-    /**
-     * Token'ın refresh token olup olmadığını kontrol eder.
-     * 
-     * @param token JWT token
-     * @return Refresh token ise true
-     */
-    public boolean isRefreshToken(String token) {
-        String tokenType = extractClaim(token, claims -> claims.get(CLAIM_TOKEN_TYPE, String.class));
-        return TOKEN_TYPE_REFRESH.equals(tokenType);
+    public UUID getUserIdFromToken(String token) {
+        Claims claims = parseClaims(token);
+        return UUID.fromString(claims.getSubject());
     }
 
-    /**
-     * Token'ın süresinin dolup dolmadığını kontrol eder.
-     * 
-     * @param token JWT token
-     * @return Süresi dolmuşsa true
-     */
-    public boolean isTokenExpired(String token) {
-        Date expiration = extractExpiration(token);
-        if (expiration == null) {
-            return true;
-        }
-        return expiration.before(new Date());
+    public String getEmailFromToken(String token) {
+        Claims claims = parseClaims(token);
+        return claims.get(CLAIM_EMAIL, String.class);
     }
 
-    // ==================== BİLGİ ÇIKARMA ====================
-
-    /**
-     * Token'dan e-posta adresini çıkarır.
-     * 
-     * @param token JWT token
-     * @return E-posta adresi
-     */
     public String extractEmail(String token) {
-        return extractClaim(token, Claims::getSubject);
+        return getEmailFromToken(token);
     }
 
-    /**
-     * Token'dan kullanıcı ID'sini çıkarır.
-     * 
-     * @param token JWT token
-     * @return Kullanıcı ID
-     */
-    public UUID extractUserId(String token) {
-        String userIdStr = extractClaim(token, claims -> claims.get(CLAIM_USER_ID, String.class));
-        if (userIdStr == null) {
-            return null;
-        }
-        return UUID.fromString(userIdStr);
+    public String getRoleFromToken(String token) {
+        Claims claims = parseClaims(token);
+        return claims.get(CLAIM_ROLE, String.class);
     }
 
-    /**
-     * Token'dan rolü çıkarır.
-     * 
-     * @param token JWT token
-     * @return Kullanıcı rolü
-     */
-    public String extractRole(String token) {
-        return extractClaim(token, claims -> claims.get(CLAIM_ROLE, String.class));
+    public Date getExpirationFromToken(String token) {
+        Claims claims = parseClaims(token);
+        return claims.getExpiration();
     }
 
-    /**
-     * Token'dan son kullanma tarihini çıkarır.
-     * 
-     * @param token JWT token
-     * @return Son kullanma tarihi
-     */
-    public Date extractExpiration(String token) {
-        return extractClaim(token, Claims::getExpiration);
+    public boolean isRefreshToken(String token) {
+        Claims claims = parseClaims(token);
+        String type = claims.get(CLAIM_TOKEN_TYPE, String.class);
+        return TOKEN_TYPE_REFRESH.equals(type);
     }
 
-    /**
-     * Token'dan oluşturulma tarihini çıkarır.
-     * 
-     * @param token JWT token
-     * @return Oluşturulma tarihi
-     */
-    public Date extractIssuedAt(String token) {
-        return extractClaim(token, Claims::getIssuedAt);
-    }
-
-    /**
-     * Token'dan belirtilen claim'i çıkarır.
-     * 
-     * @param token JWT token
-     * @param claimsResolver Claim çözümleyici fonksiyon
-     * @param <T> Dönüş tipi
-     * @return Claim değeri
-     */
-    public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
-        Claims claims = extractAllClaims(token);
-        if (claims == null) {
-            return null;
-        }
-        return claimsResolver.apply(claims);
-    }
-
-    /**
-     * Token'dan tüm claim'leri çıkarır.
-     * 
-     * @param token JWT token
-     * @return Claims nesnesi
-     */
-    private Claims extractAllClaims(String token) {
-        try {
-            return Jwts.parser()
-                    .verifyWith(secretKey)
-                    .build()
-                    .parseSignedClaims(token)
-                    .getPayload();
-
-        } catch (JwtException e) {
-            logger.error("Claims çıkarma hatası: {}", e.getMessage());
-            return null;
-        }
-    }
-
-    // ==================== YARDIMCI METODLAR ====================
-
-    /**
-     * Token'ın kalan süresini saniye cinsinden döndürür.
-     * 
-     * @param token JWT token
-     * @return Kalan süre (saniye)
-     */
-    public long getRemainingTimeInSeconds(String token) {
-        Date expiration = extractExpiration(token);
-        if (expiration == null) {
-            return 0;
-        }
-
-        long remainingMs = expiration.getTime() - System.currentTimeMillis();
-        if (remainingMs < 0) {
-            return 0;
-        }
-
-        return remainingMs / 1000;
-    }
-
-    /**
-     * Access token süresini milisaniye cinsinden döndürür.
-     * 
-     * @return Access token süresi (ms)
-     */
-    public long getAccessTokenExpirationMs() {
-        return jwtConfig.getAccessTokenExpiration();
-    }
-
-    /**
-     * Refresh token süresini milisaniye cinsinden döndürür.
-     * 
-     * @return Refresh token süresi (ms)
-     */
-    public long getRefreshTokenExpirationMs() {
-        return jwtConfig.getRefreshTokenExpiration();
+    private Claims parseClaims(String token) {
+        return Jwts.parser()
+                .verifyWith(secretKey)
+                .build()
+                .parseSignedClaims(token)
+                .getPayload();
     }
 }

@@ -1,115 +1,67 @@
 package com.seffafbagis.api.config;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.CorsConfigurationSource;
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.web.servlet.config.annotation.CorsRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
- * CORS (Cross-Origin Resource Sharing) yapılandırması.
- * 
- * CORS, farklı domain'lerden gelen istekleri kontrol eder.
- * Frontend (örn: localhost:3000) ve Backend (örn: localhost:8080) 
- * farklı portlarda çalıştığında CORS gereklidir.
- * 
- * GÜVENLİK NOTU:
- * - Production'da allowedOrigins'i sadece kendi domain'inize sınırlayın
- * - "*" kullanmaktan kaçının
- * - Credentials true ise "*" origin kullanamazsınız
- * 
- * @author Furkan
- * @version 1.0
+ * Configures global Cross-Origin Resource Sharing rules so that the frontend can access the API.
+ * Values are fully driven by application properties which makes it easy to update per environment.
  */
 @Configuration
-public class CorsConfig {
+public class CorsConfig implements WebMvcConfigurer {
 
-    /**
-     * İzin verilen origin'ler.
-     * application.yml'dan okunur.
-     * Örnek: http://localhost:3000, https://seffafbagis.com
-     */
-    @Value("${app.cors.allowed-origins}")
-    private List<String> allowedOrigins;
+    private static final Logger LOGGER = LoggerFactory.getLogger(CorsConfig.class);
 
-    /**
-     * İzin verilen HTTP metodları.
-     */
-    private static final List<String> ALLOWED_METHODS = Arrays.asList(
-        "GET",
-        "POST",
-        "PUT",
-        "PATCH",
-        "DELETE",
-        "OPTIONS"
-    );
+    private final List<String> allowedOrigins;
+    private final List<String> allowedMethods;
+    private final List<String> allowedHeaders;
+    private final boolean allowCredentials;
+    private final long maxAgeSeconds;
 
-    /**
-     * İzin verilen HTTP header'ları.
-     */
-    private static final List<String> ALLOWED_HEADERS = Arrays.asList(
-        "Authorization",
-        "Content-Type",
-        "Accept",
-        "Origin",
-        "X-Requested-With",
-        "Access-Control-Request-Method",
-        "Access-Control-Request-Headers"
-    );
+    public CorsConfig(
+            @Value("${app.cors.allowed-origins}") String origins,
+            @Value("${app.cors.allowed-methods}") String methods,
+            @Value("${app.cors.allowed-headers}") String headers,
+            @Value("${app.cors.allow-credentials:true}") boolean allowCredentials,
+            @Value("${app.cors.max-age:3600}") long maxAgeSeconds) {
+        this.allowedOrigins = splitToList(origins);
+        this.allowedMethods = splitToList(methods);
+        this.allowedHeaders = splitToList(headers.equals("*") ? "*" : headers);
+        this.allowCredentials = allowCredentials;
+        this.maxAgeSeconds = maxAgeSeconds;
 
-    /**
-     * Response'ta expose edilecek header'lar.
-     * Frontend bu header'ları okuyabilir.
-     */
-    private static final List<String> EXPOSED_HEADERS = Arrays.asList(
-        "Authorization",
-        "Content-Disposition",
-        "X-Total-Count",
-        "X-Total-Pages"
-    );
+        LOGGER.info("Configured CORS with origins: {}", this.allowedOrigins);
+    }
 
-    /**
-     * Preflight cache süresi (saniye).
-     * Tarayıcı bu süre boyunca OPTIONS isteği göndermez.
-     */
-    private static final Long MAX_AGE_SECONDS = 3600L;
+    @Override
+    public void addCorsMappings(CorsRegistry registry) {
+        registry.addMapping("/**")
+                .allowedOrigins(allowedOrigins.toArray(new String[0]))
+                .allowedMethods(allowedMethods.toArray(new String[0]))
+                .allowedHeaders(resolveAllowedHeaders())
+                .allowCredentials(allowCredentials)
+                .maxAge(maxAgeSeconds);
+    }
 
-    /**
-     * CORS yapılandırma kaynağı bean'i.
-     * 
-     * @return CorsConfigurationSource instance
-     */
-    @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration configuration = new CorsConfiguration();
-        
-        // İzin verilen origin'leri ayarla
-        configuration.setAllowedOrigins(allowedOrigins);
-        
-        // İzin verilen HTTP metodları
-        configuration.setAllowedMethods(ALLOWED_METHODS);
-        
-        // İzin verilen header'lar
-        configuration.setAllowedHeaders(ALLOWED_HEADERS);
-        
-        // Expose edilecek header'lar
-        configuration.setExposedHeaders(EXPOSED_HEADERS);
-        
-        // Cookie ve Authorization header gönderimi için gerekli
-        // Bu true olduğunda allowedOrigins "*" olamaz
-        configuration.setAllowCredentials(true);
-        
-        // Preflight cache süresi
-        configuration.setMaxAge(MAX_AGE_SECONDS);
-        
-        // Tüm endpoint'lere uygula
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration);
-        
-        return source;
+    private String[] resolveAllowedHeaders() {
+        if (allowedHeaders.size() == 1 && "*".equals(allowedHeaders.get(0))) {
+            return new String[]{"*"};
+        }
+        return allowedHeaders.toArray(new String[0]);
+    }
+
+    private List<String> splitToList(String value) {
+        return Arrays.stream(value.split(","))
+                .map(String::trim)
+                .filter(token -> !token.isEmpty())
+                .collect(Collectors.toList());
     }
 }
