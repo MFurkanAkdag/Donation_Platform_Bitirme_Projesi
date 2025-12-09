@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hoş Geldiniz</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            background-color: #f9f9f9;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px 20px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 28px;
+            font-weight: 600;
+        }
+        .content {
+            padding: 40px 20px;
+        }
+        .content h2 {
+            color: #667eea;
+            font-size: 22px;
+            margin-top: 0;
+        }
+        .content p {
+            margin: 15px 0;
+            color: #555;
+        }
+        .content ul {
+            margin: 20px 0;
+            padding-left: 20px;
+        }
+        .content li {
+            margin: 10px 0;
+            color: #555;
+        }
+        .features {
+            background-color: #f0f4ff;
+            padding: 20px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .button-container {
+            text-align: center;
+            margin: 30px 0;
+        }
+        .button {
+            display: inline-block;
+            padding: 14px 40px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: 600;
+            font-size: 16px;
+        }
+        .button:hover {
+            opacity: 0.9;
+        }
+        .secondary-button {
+            display: inline-block;
+            padding: 12px 30px;
+            background-color: #f0f0f0;
+            color: #667eea;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: 600;
+            font-size: 14px;
+            margin: 10px 5px;
+        }
+        .secondary-button:hover {
+            background-color: #e0e0e0;
+        }
+        .footer {
+            background-color: #f9f9f9;
+            padding: 20px;
+            text-align: center;
+            border-top: 1px solid #e0e0e0;
+            font-size: 12px;
+            color: #999;
+        }
+        .text-link {
+            color: #667eea;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Şeffaf Bağış Platformu</h1>
+        </div>
+
+        <div class="content">
+            <h2>Şeffaf Bağış Platformu'na Hoş Geldiniz!</h2>
+
+            <p>Merhaba <span th:text="${userName}">Kullanıcı</span>,</p>
+
+            <p>E-posta adresiniz başarıyla doğrulandı. Artık platformumuzu kullanmaya başlayabilirsiniz.</p>
+
+            <div class="features">
+                <p><strong>Şeffaf Bağış Platformu ile neler yapabilirsiniz?</strong></p>
+                <ul>
+                    <li>✓ Güvenilir vakıflara bağış yapın</li>
+                    <li>✓ Bağışlarınızın nasıl kullanıldığını takip edin</li>
+                    <li>✓ Vakıfların şeffaflık raporlarını inceleyin</li>
+                    <li>✓ Kampanyaları destekleyin ve izleyin</li>
+                    <li>✓ Topluluğun bir parçası olun</li>
+                </ul>
+            </div>
+
+            <div class="button-container">
+                <a th:href="${loginUrl}" class="button">Hesabıma Giriş Yap</a>
+            </div>
+
+            <p style="text-align: center; margin-top: 30px;">
+                <a th:href="${dashboardUrl}" class="text-link">Pano</a> • 
+                <a href="#" class="text-link">Kampanyalar</a> • 
+                <a href="#" class="text-link">Vakıflar</a>
+            </p>
+
+            <p style="border-top: 1px solid #e0e0e0; padding-top: 20px; margin-top: 30px; font-size: 13px; color: #999;">
+                Başlamaya hazır değil misiniz? Profil ayarlarınızı tamamlamak için <a th:href="${dashboardUrl}" class="text-link">buraya tıklayın</a>.
+            </p>
+        </div>
+
+        <div class="footer">
+            <p>© 2024 Şeffaf Bağış Platformu. Tüm hakları saklıdır.</p>
+            <p>Bu e-posta otomatik olarak gönderilmiştir. Lütfen yanıt vermeyin.</p>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E-posta Doğrulama</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            background-color: #f9f9f9;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px 20px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 28px;
+            font-weight: 600;
+        }
+        .content {
+            padding: 40px 20px;
+        }
+        .content h2 {
+            color: #667eea;
+            font-size: 22px;
+            margin-top: 0;
+        }
+        .content p {
+            margin: 15px 0;
+            color: #555;
+        }
+        .button-container {
+            text-align: center;
+            margin: 30px 0;
+        }
+        .button {
+            display: inline-block;
+            padding: 14px 40px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: 600;
+            font-size: 16px;
+        }
+        .button:hover {
+            opacity: 0.9;
+        }
+        .note {
+            background-color: #f0f0f0;
+            padding: 15px;
+            border-left: 4px solid #667eea;
+            margin: 20px 0;
+            font-size: 14px;
+            color: #666;
+        }
+        .footer {
+            background-color: #f9f9f9;
+            padding: 20px;
+            text-align: center;
+            border-top: 1px solid #e0e0e0;
+            font-size: 12px;
+            color: #999;
+        }
+        .text-link {
+            color: #667eea;
+            text-decoration: none;
+            word-break: break-all;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Şeffaf Bağış Platformu</h1>
+        </div>
+
+        <div class="content">
+            <h2>E-posta Adresinizi Doğrulayın</h2>
+
+            <p>Merhaba <span th:text="${userName}">Kullanıcı</span>,</p>
+
+            <p>Şeffaf Bağış Platformu'na kaydolduğunuz için teşekkür ederiz.</p>
+
+            <p>E-posta adresinizi doğrulamak için aşağıdaki butona tıklayın:</p>
+
+            <div class="button-container">
+                <a th:href="${verificationUrl}" class="button">E-postamı Doğrula</a>
+            </div>
+
+            <p>Veya aşağıdaki bağlantıyı kopyalayıp tarayıcınıza yapıştırın:</p>
+            <p class="text-link" th:text="${verificationUrl}"></p>
+
+            <div class="note">
+                <strong>Dikkat:</strong> Bu bağlantı <span th:text="${expiryHours}">24</span> saat içinde geçerliliğini yitirecektir.
+            </div>
+
+            <p>Bu işlemi siz yapmadıysanız, bu e-postayı dikkate almayın.</p>
+
+            <p>Sorularınız için: <a th:href="'mailto:' + ${supportEmail}" class="text-link" th:text="${supportEmail}"></a></p>
+        </div>
+
+        <div class="footer">
+            <p>© 2024 Şeffaf Bağış Platformu. Tüm hakları saklıdır.</p>
+            <p>Bu e-posta otomatik olarak gönderilmiştir. Lütfen yanıt vermeyin.</p>
+        </div>
+    </div>
+</body>
+</html>

@@ -32,12 +32,24 @@ public class ValidationException extends BusinessException {
     /**
      * Constructor with message and field errors.
      * 
-     * @param message General validation error message
+     * @param message     General validation error message
      * @param fieldErrors Map of field names to error messages
      */
     public ValidationException(String message, Map<String, String> fieldErrors) {
         super(message, HttpStatus.BAD_REQUEST, "VALIDATION_ERROR");
         this.fieldErrors = fieldErrors != null ? fieldErrors : new HashMap<>();
+    }
+
+    /**
+     * Constructor for single field error.
+     * 
+     * @param field Field name
+     * @param error Error message
+     */
+    public ValidationException(String field, String error) {
+        super("Validation Error", HttpStatus.BAD_REQUEST, "VALIDATION_ERROR");
+        this.fieldErrors = new HashMap<>();
+        this.fieldErrors.put(field, error);
     }
 
     /**

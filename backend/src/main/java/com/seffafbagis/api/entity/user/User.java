@@ -33,14 +33,11 @@ import java.time.Instant;
  * @version 1.0
  */
 @Entity
-@Table(
-    name = "users",
-    indexes = {
+@Table(name = "users", indexes = {
         @Index(name = "idx_users_email", columnList = "email"),
         @Index(name = "idx_users_role", columnList = "role"),
         @Index(name = "idx_users_status", columnList = "status")
-    }
-)
+})
 public class User extends BaseEntity {
 
     /**
@@ -100,6 +97,12 @@ public class User extends BaseEntity {
     private Instant emailVerifiedAt;
 
     /**
+     * Şifre son değiştirilme tarihi.
+     */
+    @Column(name = "password_changed_at")
+    private Instant passwordChangedAt;
+
+    /**
      * Son giriş tarihi.
      */
     @Column(name = "last_login_at")
@@ -157,9 +160,9 @@ public class User extends BaseEntity {
     /**
      * Temel bilgilerle constructor.
      * 
-     * @param email E-posta adresi
+     * @param email        E-posta adresi
      * @param passwordHash Hash'lenmiş şifre
-     * @param role Kullanıcı rolü
+     * @param role         Kullanıcı rolü
      */
     public User(String email, String passwordHash, UserRole role) {
         this.email = email;
@@ -193,6 +196,10 @@ public class User extends BaseEntity {
 
     public Instant getEmailVerifiedAt() {
         return emailVerifiedAt;
+    }
+
+    public Instant getPasswordChangedAt() {
+        return passwordChangedAt;
     }
 
     public Instant getLastLoginAt() {
@@ -262,6 +269,10 @@ public class User extends BaseEntity {
         this.emailVerifiedAt = emailVerifiedAt;
     }
 
+    public void setPasswordChangedAt(Instant passwordChangedAt) {
+        this.passwordChangedAt = passwordChangedAt;
+    }
+
     public void setLastLoginAt(Instant lastLoginAt) {
         this.lastLoginAt = lastLoginAt;
     }
@@ -284,7 +295,7 @@ public class User extends BaseEntity {
             failedLoginAttempts = 0;
         }
         failedLoginAttempts++;
-        
+
         if (failedLoginAttempts >= 5) {
             this.lockedUntil = Instant.now().plus(java.time.Duration.ofMinutes(15));
             return true;
@@ -394,7 +405,7 @@ public class User extends BaseEntity {
     public void verifyEmail() {
         this.emailVerified = true;
         this.emailVerifiedAt = Instant.now();
-        
+
         // Eğer doğrulama bekliyor durumundaysa aktif yap
         if (this.status == UserStatus.PENDING_VERIFICATION) {
             this.status = UserStatus.ACTIVE;

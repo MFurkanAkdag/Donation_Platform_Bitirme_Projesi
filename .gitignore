@@ -141,3 +141,25 @@ vite.config.ts.timestamp-*
 
 .idea/
 *.iml
+
+
+# Maven (Kutuphane) klasorlerini yoksay
+.m2/
+backend/.m2/
+
+# Derlenmis kodlari (target) yoksay
+target/
+**/target/
+
+# Java class ve jar dosyalarini yoksay
+*.class
+*.jar
+*.war
+*.ear
+
+# IDE (Editor) ayarlarini yoksay (Opsiyonel ama onerilir)
+.vscode/
+.idea/
+*.iml
+
+docs/Furkan/promptlar

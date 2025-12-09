@@ -1,6 +1,6 @@
 package com.seffafbagis.api.exception;
 
-import com.seffafbagis.api.dto.response.ApiResponse;
+import com.seffafbagis.api.dto.response.common.ApiResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -144,9 +144,8 @@ public class GlobalExceptionHandler {
                 ex.getMessage(), request.getRequestURI(), getClientIp(request));
 
         ApiResponse<Void> response = ApiResponse.error(
-            "Kimlik doğrulama hatası",
-            "AUTHENTICATION_FAILED"
-        );
+                "Kimlik doğrulama hatası",
+                "AUTHENTICATION_FAILED");
         return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
     }
 
@@ -162,9 +161,8 @@ public class GlobalExceptionHandler {
                 ex.getMessage(), request.getRequestURI(), getClientIp(request));
 
         ApiResponse<Void> response = ApiResponse.error(
-            "Bu işlem için yetkiniz bulunmamaktadır",
-            "ACCESS_DENIED"
-        );
+                "Bu işlem için yetkiniz bulunmamaktadır",
+                "ACCESS_DENIED");
         return new ResponseEntity<>(response, HttpStatus.FORBIDDEN);
     }
 
@@ -172,6 +170,7 @@ public class GlobalExceptionHandler {
 
     /**
      * MethodArgumentNotValidException handler.
+     * 
      * @Valid annotation'dan gelen hatalar.
      */
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -268,9 +267,8 @@ public class GlobalExceptionHandler {
         logger.warn("Message not readable - Path: {}", request.getRequestURI());
 
         ApiResponse<Void> response = ApiResponse.error(
-            "Geçersiz istek formatı",
-            "INVALID_REQUEST_BODY"
-        );
+                "Geçersiz istek formatı",
+                "INVALID_REQUEST_BODY");
         return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
     }
 
@@ -285,9 +283,8 @@ public class GlobalExceptionHandler {
         logger.warn("No handler found - Path: {}", request.getRequestURI());
 
         ApiResponse<Void> response = ApiResponse.error(
-            "Endpoint bulunamadı: " + ex.getRequestURL(),
-            "NOT_FOUND"
-        );
+                "Endpoint bulunamadı: " + ex.getRequestURL(),
+                "NOT_FOUND");
         return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
     }
 
@@ -302,9 +299,8 @@ public class GlobalExceptionHandler {
         logger.warn("File too large - Path: {}", request.getRequestURI());
 
         ApiResponse<Void> response = ApiResponse.error(
-            "Dosya boyutu çok büyük",
-            "FILE_TOO_LARGE"
-        );
+                "Dosya boyutu çok büyük",
+                "FILE_TOO_LARGE");
         return new ResponseEntity<>(response, HttpStatus.PAYLOAD_TOO_LARGE);
     }
 
@@ -325,9 +321,8 @@ public class GlobalExceptionHandler {
 
         // Production'da detaylı hata mesajı gösterme
         ApiResponse<Void> response = ApiResponse.error(
-            "Beklenmeyen bir hata oluştu",
-            "INTERNAL_SERVER_ERROR"
-        );
+                "Beklenmeyen bir hata oluştu",
+                "INTERNAL_SERVER_ERROR");
         return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 

@@ -68,6 +68,9 @@ CREATE TABLE users (
     email_verified BOOLEAN DEFAULT FALSE,
     email_verified_at TIMESTAMPTZ,
     last_login_at TIMESTAMPTZ,
+    failed_login_attempts INTEGER DEFAULT 0,
+    locked_until TIMESTAMPTZ,
+    password_changed_at TIMESTAMPTZ,
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
@@ -112,6 +115,10 @@ CREATE TABLE user_sensitive_data (
     birth_date_encrypted BYTEA,              -- AES-256 şifreli
     data_processing_consent BOOLEAN DEFAULT FALSE,
     consent_date TIMESTAMPTZ,
+    marketing_consent BOOLEAN DEFAULT FALSE,
+    marketing_consent_date TIMESTAMPTZ,
+    third_party_sharing_consent BOOLEAN DEFAULT FALSE,
+    third_party_sharing_consent_date TIMESTAMPTZ,
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
@@ -160,6 +167,9 @@ CREATE TABLE organizations (
     verification_status verification_status DEFAULT 'pending',
     verified_at TIMESTAMPTZ,
     verified_by UUID REFERENCES users(id),
+    rejection_reason TEXT,
+    resubmission_count INTEGER DEFAULT 0,
+    last_resubmission_at TIMESTAMPTZ,
     is_featured BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
@@ -225,10 +235,16 @@ CREATE TABLE organization_bank_accounts (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
     bank_name VARCHAR(100) NOT NULL,
+    bank_code VARCHAR(5),
     branch_name VARCHAR(100),
+    branch_code VARCHAR(10),
+    branch_city VARCHAR(100),
+    branch_district VARCHAR(100),
     account_holder VARCHAR(255) NOT NULL,
+    account_number VARCHAR(30),
     iban VARCHAR(34) NOT NULL,
     currency VARCHAR(3) DEFAULT 'TRY',
+    account_type VARCHAR(50) DEFAULT 'current',
     is_primary BOOLEAN DEFAULT FALSE,
     is_verified BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
@@ -311,6 +327,7 @@ CREATE TABLE campaigns (
     beneficiary_count INTEGER,                -- Kaç kişiye ulaşılacak
     created_by UUID REFERENCES users(id),
     approved_by UUID REFERENCES users(id),
+    default_bank_account_id UUID REFERENCES organization_bank_accounts(id),
     approved_at TIMESTAMPTZ,
     completed_at TIMESTAMPTZ,
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
@@ -318,6 +335,7 @@ CREATE TABLE campaigns (
 );
 
 CREATE INDEX idx_campaigns_org_id ON campaigns(organization_id);
+CREATE INDEX idx_campaigns_bank_account ON campaigns(default_bank_account_id);
 CREATE INDEX idx_campaigns_status ON campaigns(status);
 CREATE INDEX idx_campaigns_slug ON campaigns(slug);
 CREATE INDEX idx_campaigns_dates ON campaigns(start_date, end_date);
@@ -407,6 +425,10 @@ CREATE TABLE donations (
     donor_display_name VARCHAR(100),          -- Anonim değilse gösterilecek isim
     ip_address INET,
     user_agent TEXT,
+    source VARCHAR(20) DEFAULT 'web',
+    refund_status VARCHAR(20) DEFAULT 'none',
+    refund_reason TEXT,
+    refund_requested_at TIMESTAMPTZ,
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
@@ -431,6 +453,9 @@ CREATE TABLE transactions (
     amount DECIMAL(12,2) NOT NULL,
     fee_amount DECIMAL(12,2) DEFAULT 0,       -- Komisyon
     net_amount DECIMAL(12,2),                 -- Net tutar
+    refunded_amount DECIMAL(12,2),
+    refunded_at TIMESTAMPTZ,
+    installment_count INTEGER DEFAULT 1,
     currency VARCHAR(3) DEFAULT 'TRY',
     status VARCHAR(50) NOT NULL,              -- Provider'dan gelen durum
     error_code VARCHAR(50),
@@ -476,8 +501,10 @@ CREATE TABLE evidences (
     title VARCHAR(255) NOT NULL,
     description TEXT,
     amount_spent DECIMAL(12,2),               -- Harcanan tutar
+    spend_date DATE,
     vendor_name VARCHAR(255),                 -- Satıcı/tedarikçi adı
     vendor_tax_number VARCHAR(20),
+    invoice_number VARCHAR(100),
     status evidence_status DEFAULT 'pending',
     reviewed_by UUID REFERENCES users(id),
     reviewed_at TIMESTAMPTZ,
@@ -634,6 +661,8 @@ CREATE TABLE audit_logs (
     action VARCHAR(100) NOT NULL,             -- 'user.login', 'donation.create', 'evidence.approve'
     entity_type VARCHAR(100),                 -- 'user', 'campaign', 'donation'
     entity_id UUID,
+    request_id VARCHAR(50),
+    session_id VARCHAR(255),
     old_values JSONB,
     new_values JSONB,
     ip_address INET,
@@ -645,6 +674,7 @@ CREATE INDEX idx_audit_user ON audit_logs(user_id);
 CREATE INDEX idx_audit_action ON audit_logs(action);
 CREATE INDEX idx_audit_entity ON audit_logs(entity_type, entity_id);
 CREATE INDEX idx_audit_created ON audit_logs(created_at);
+CREATE INDEX idx_audit_request ON audit_logs(request_id);
 
 
 -- ---------------------------------------------------------------------------
@@ -656,6 +686,9 @@ CREATE TABLE email_logs (
     user_id UUID REFERENCES users(id),
     email_to VARCHAR(255) NOT NULL,
     email_type VARCHAR(100) NOT NULL,         -- 'welcome', 'donation_receipt', 'evidence_reminder'
+    provider VARCHAR(50),
+    template_name VARCHAR(100),
+    retry_count INTEGER DEFAULT 0,
     subject VARCHAR(255) NOT NULL,
     status VARCHAR(50) DEFAULT 'sent',        -- 'sent', 'failed', 'bounced'
     provider_message_id VARCHAR(255),
@@ -733,6 +766,7 @@ CREATE TABLE recurring_donations (
     status VARCHAR(20) DEFAULT 'active',                 -- 'active', 'paused', 'cancelled'
     card_token VARCHAR(255),                             -- Kaydedilmiş kart token (Iyzico)
     failure_count INTEGER DEFAULT 0,                     -- Ardışık başarısız deneme
+    last_error_message TEXT,
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
@@ -784,15 +818,20 @@ CREATE TABLE reports (
     reason VARCHAR(255) NOT NULL,
     description TEXT,
     evidence_urls TEXT[],                                -- Kanıt linkleri
+    priority VARCHAR(20) DEFAULT 'medium',
     status VARCHAR(20) DEFAULT 'pending',                -- 'pending', 'investigating', 'resolved', 'dismissed'
     resolution_notes TEXT,
     resolved_by UUID REFERENCES users(id),
     resolved_at TIMESTAMPTZ,
+    assigned_to UUID REFERENCES users(id),
+    assigned_at TIMESTAMPTZ,
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE INDEX idx_reports_entity ON reports(entity_type, entity_id);
 CREATE INDEX idx_reports_status ON reports(status);
+CREATE INDEX idx_reports_priority ON reports(priority);
+CREATE INDEX idx_reports_assigned ON reports(assigned_to);
 
 
 -- ---------------------------------------------------------------------------
@@ -804,9 +843,13 @@ CREATE TABLE bank_transfer_references (
     reference_code VARCHAR(20) UNIQUE NOT NULL,          -- Benzersiz referans kodu
     campaign_id UUID REFERENCES campaigns(id),
     organization_id UUID REFERENCES organizations(id),
+    bank_account_id UUID REFERENCES organization_bank_accounts(id),
     donor_id UUID REFERENCES users(id),
     expected_amount DECIMAL(12,2),
     donation_type_id UUID REFERENCES donation_types(id),
+    sender_name VARCHAR(255),
+    sender_iban VARCHAR(34),
+    bank_account_snapshot JSONB,
     status VARCHAR(20) DEFAULT 'pending',                -- 'pending', 'matched', 'expired'
     matched_donation_id UUID REFERENCES donations(id),
     expires_at TIMESTAMPTZ NOT NULL,
@@ -815,6 +858,7 @@ CREATE TABLE bank_transfer_references (
 
 CREATE INDEX idx_bank_ref_code ON bank_transfer_references(reference_code);
 CREATE INDEX idx_bank_ref_status ON bank_transfer_references(status) WHERE status = 'pending';
+CREATE INDEX idx_bank_ref_account ON bank_transfer_references(bank_account_id);
 
 
 -- ---------------------------------------------------------------------------
@@ -881,6 +925,45 @@ CREATE TABLE password_reset_tokens (
 );
 
 CREATE INDEX idx_password_reset_user ON password_reset_tokens(user_id);
+
+
+-- ---------------------------------------------------------------------------
+-- TABLO: email_verification_tokens
+-- Açıklama: E-posta doğrulama token'ları (şifre sıfırlamadan ayrı)
+-- ---------------------------------------------------------------------------
+CREATE TABLE email_verification_tokens (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    token_hash VARCHAR(255) NOT NULL,
+    expires_at TIMESTAMPTZ NOT NULL,
+    verified_at TIMESTAMPTZ,
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX idx_email_verification_user ON email_verification_tokens(user_id);
+CREATE INDEX idx_email_verification_hash ON email_verification_tokens(token_hash);
+
+
+-- ---------------------------------------------------------------------------
+-- TABLO: login_history
+-- Açıklama: Tüm giriş denemeleri (başarılı/başarısız) için kayıt
+-- ---------------------------------------------------------------------------
+CREATE TABLE login_history (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    login_status VARCHAR(20) NOT NULL,        -- 'success', 'failed', 'blocked'
+    ip_address INET,
+    user_agent TEXT,
+    device_type VARCHAR(50),
+    location_country VARCHAR(100),
+    location_city VARCHAR(100),
+    failure_reason VARCHAR(100),
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX idx_login_history_user ON login_history(user_id);
+CREATE INDEX idx_login_history_status ON login_history(login_status);
+CREATE INDEX idx_login_history_created ON login_history(created_at);
 
 
 -- ============================================================================
@@ -992,6 +1075,10 @@ users (1) ─────────────── (1) user_profiles
       ├── (N) ──────────── notifications
       │
       ├── (N) ──────────── audit_logs
+      │
+      ├── (N) ──────────── email_verification_tokens
+      │
+      ├── (N) ──────────── login_history
       │
       └── (N) ──────────── chat_sessions ──────── (N) chat_messages
 

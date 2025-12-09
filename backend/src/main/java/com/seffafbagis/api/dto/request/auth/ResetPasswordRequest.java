@@ -2,9 +2,6 @@ package com.seffafbagis.api.dto.request.auth;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 
 /**
  * DTO for password reset request.
@@ -12,9 +9,6 @@ import lombok.NoArgsConstructor;
  * Used when user submits new password using a reset token.
  * Validates that passwords match and meet strength requirements.
  */
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
 public class ResetPasswordRequest {
 
     /**
@@ -35,4 +29,41 @@ public class ResetPasswordRequest {
      */
     @NotBlank(message = "Password confirmation is required")
     private String confirmPassword;
+
+    public ResetPasswordRequest() {
+    }
+
+    public ResetPasswordRequest(String token, String newPassword, String confirmPassword) {
+        this.token = token;
+        this.newPassword = newPassword;
+        this.confirmPassword = confirmPassword;
+    }
+
+    public String getToken() {
+        return token;
+    }
+
+    public void setToken(String token) {
+        this.token = token;
+    }
+
+    public String getNewPassword() {
+        return newPassword;
+    }
+
+    public void setNewPassword(String newPassword) {
+        this.newPassword = newPassword;
+    }
+
+    public String getConfirmPassword() {
+        return confirmPassword;
+    }
+
+    public void setConfirmPassword(String confirmPassword) {
+        this.confirmPassword = confirmPassword;
+    }
+
+    public boolean passwordsMatch() {
+        return newPassword != null && newPassword.equals(confirmPassword);
+    }
 }

@@ -67,4 +67,8 @@ public final class SecurityUtils {
     public static boolean isCurrentUser(UUID userId) {
         return getCurrentUserId().map(id -> id.equals(userId)).orElse(false);
     }
+
+    public static boolean isCurrentUserOrAdmin(UUID userId) {
+        return isAdmin() || isCurrentUser(userId);
+    }
 }

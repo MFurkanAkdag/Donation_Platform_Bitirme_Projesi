@@ -1,13 +1,7 @@
 package com.seffafbagis.api.entity.auth;
 
-import com.seffafbagis.api.entity.base.BaseEntity;
 import com.seffafbagis.api.entity.user.User;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
@@ -24,16 +18,16 @@ import java.util.UUID;
  */
 @Entity
 @Table(name = "email_verification_tokens")
-@Data
-@EqualsAndHashCode(callSuper = true)
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
-public class EmailVerificationToken extends BaseEntity {
+public class EmailVerificationToken {
 
     /**
-     * User associated with this verification token.
+     * Unique identifier.
      */
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(name = "id", nullable = false, updatable = false)
+    private UUID id;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
@@ -67,6 +61,82 @@ public class EmailVerificationToken extends BaseEntity {
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
+
+    // ==================== CONSTRUCTORS ====================
+
+    public EmailVerificationToken() {
+    }
+
+    public EmailVerificationToken(UUID id, User user, String tokenHash, LocalDateTime expiresAt,
+            LocalDateTime verifiedAt, LocalDateTime createdAt) {
+        this.id = id;
+        this.user = user;
+        this.tokenHash = tokenHash;
+        this.expiresAt = expiresAt;
+        this.verifiedAt = verifiedAt;
+        this.createdAt = createdAt;
+    }
+
+    // ==================== GETTERS AND SETTERS ====================
+
+    public EmailVerificationToken(User user) {
+        this.user = user;
+        this.createdAt = LocalDateTime.now();
+        this.expiresAt = LocalDateTime.now().plusHours(24);
+        this.tokenHash = UUID.randomUUID().toString(); // Temporary logic
+    }
+
+    public UUID getId() {
+        return id;
+    }
+
+    public void setId(UUID id) {
+        this.id = id;
+    }
+
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
+    }
+
+    public String getToken() {
+        return tokenHash; // In real impl, return raw token, store hash
+    }
+
+    public String getTokenHash() {
+        return tokenHash;
+    }
+
+    public void setTokenHash(String tokenHash) {
+        this.tokenHash = tokenHash;
+    }
+
+    public LocalDateTime getExpiresAt() {
+        return expiresAt;
+    }
+
+    public void setExpiresAt(LocalDateTime expiresAt) {
+        this.expiresAt = expiresAt;
+    }
+
+    public LocalDateTime getVerifiedAt() {
+        return verifiedAt;
+    }
+
+    public void setVerifiedAt(LocalDateTime verifiedAt) {
+        this.verifiedAt = verifiedAt;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
 
     // ==================== METHODS ====================
 

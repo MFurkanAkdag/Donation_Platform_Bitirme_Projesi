@@ -10,11 +10,11 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.validation.annotation.Validated;
 
 /**
- * Binds JWT related configuration from {@code app.jwt.*} properties in a type-safe manner.
+ * Binds JWT related configuration from {@code app.jwt.*} properties in a
+ * type-safe manner.
  */
 @Configuration
 @ConfigurationProperties(prefix = "app.jwt")
-@ConstructorBinding
 @Validated
 public class JwtConfig {
 

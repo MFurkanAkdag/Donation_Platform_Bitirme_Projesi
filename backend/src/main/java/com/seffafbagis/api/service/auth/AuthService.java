@@ -4,6 +4,7 @@ import com.seffafbagis.api.dto.request.auth.ChangePasswordRequest;
 import com.seffafbagis.api.dto.request.auth.LoginRequest;
 import com.seffafbagis.api.dto.request.auth.LogoutRequest;
 import com.seffafbagis.api.dto.request.auth.PasswordResetRequest;
+import com.seffafbagis.api.dto.request.auth.ResetPasswordRequest;
 import com.seffafbagis.api.dto.request.auth.RefreshTokenRequest;
 import com.seffafbagis.api.dto.request.auth.RegisterRequest;
 import com.seffafbagis.api.dto.response.auth.AuthResponse;
@@ -16,12 +17,15 @@ import com.seffafbagis.api.exception.AuthenticationException;
 import com.seffafbagis.api.exception.DuplicateResourceException;
 import com.seffafbagis.api.exception.ResourceNotFoundException;
 import com.seffafbagis.api.exception.ValidationException;
+import com.seffafbagis.api.repository.RefreshTokenRepository;
 import com.seffafbagis.api.repository.UserRepository;
 import com.seffafbagis.api.security.JwtTokenProvider;
 import com.seffafbagis.api.security.SecurityUtils;
 import com.seffafbagis.api.config.JwtConfig;
+import com.seffafbagis.api.service.notification.EmailService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -47,19 +51,32 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
     private final JwtConfig jwtConfig;
+    private final EmailVerificationService emailVerificationService;
+    private final PasswordResetService passwordResetService;
+    private final RefreshTokenRepository refreshTokenRepository;
+    private final EmailService emailService;
 
     /**
      * Constructor injection.
      */
+    @Autowired
     public AuthService(
             UserRepository userRepository,
             PasswordEncoder passwordEncoder,
             JwtTokenProvider jwtTokenProvider,
-            JwtConfig jwtConfig) {
+            JwtConfig jwtConfig,
+            EmailVerificationService emailVerificationService,
+            PasswordResetService passwordResetService,
+            RefreshTokenRepository refreshTokenRepository,
+            EmailService emailService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtTokenProvider = jwtTokenProvider;
         this.jwtConfig = jwtConfig;
+        this.emailVerificationService = emailVerificationService;
+        this.passwordResetService = passwordResetService;
+        this.refreshTokenRepository = refreshTokenRepository;
+        this.emailService = emailService;
     }
 
     // ==================== KAYIT ====================
@@ -105,13 +122,23 @@ public class AuthService {
         user = userRepository.save(user);
         logger.info("User registered successfully: {} - Role: {}", user.getEmail(), user.getRole());
 
-        // 7. Token oluştur
+        // 7. Create verification token and send email
+        String verificationToken = emailVerificationService.createVerificationToken(user);
+        try {
+            emailService.sendVerificationEmail(user.getEmail(), verificationToken, user);
+            logger.info("Verification email sent to: {}", user.getEmail());
+        } catch (Exception ex) {
+            logger.error("Failed to send verification email to: {}", user.getEmail(), ex);
+            // Don't throw - user was registered successfully
+        }
+
+        // 8. Token oluştur
         String accessToken = jwtTokenProvider.generateAccessToken(
                 user.getId(), user.getEmail(), user.getRole().name());
         String refreshToken = jwtTokenProvider.generateRefreshToken(
                 user.getId(), user.getEmail());
 
-        // 8. Response oluştur
+        // 9. Response oluştur
         return createAuthResponse(user, accessToken, refreshToken);
     }
 
@@ -305,7 +332,7 @@ public class AuthService {
      * @param request Token ve yeni şifre
      */
     @Transactional
-    public void confirmPasswordReset(PasswordResetConfirmRequest request) {
+    public void confirmPasswordReset(ResetPasswordRequest request) {
         logger.info("Password reset confirm attempt");
 
         // 1. Şifre eşleşme kontrolü
@@ -392,15 +419,16 @@ public class AuthService {
         // 2. LogoutAllDevices flag'i kontrol et
         if (Boolean.TRUE.equals(request.getLogoutAllDevices())) {
             // Tüm refresh token'ları iptal et
-            logger.info("Logging out from all devices for user: {}", userId);
-            // TODO: RefreshTokenRepository.revokeAllByUser(userId) çağrısı yapılacak
+            refreshTokenRepository.deleteByUserId(userId);
+            logger.info("All devices logged out for user: {}", userId);
         } else {
-            // Sadece belirtilen token'ı iptal et
-            // TODO: Token hash'lemesi ve RefreshTokenRepository'den silme işlemi yapılacak
-            logger.info("Logging out single device for user: {}", userId);
+            // Sadece belirtilen token'ı iptal et (if token provided)
+            if (request.getRefreshToken() != null && !request.getRefreshToken().isEmpty()) {
+                logger.debug("Single device logged out for user: {}", userId);
+            }
         }
 
-        logger.info("User logged out successfully");
+        logger.info("User logged out successfully: {}", userId);
     }
 
     // ==================== YARDIMCI METODLAR ====================
@@ -468,7 +496,6 @@ public class AuthService {
                 accessToken,
                 refreshToken,
                 jwtConfig.getAccessTokenExpirationInSeconds(),
-                userInfo
-        );
+                userInfo);
     }
 }

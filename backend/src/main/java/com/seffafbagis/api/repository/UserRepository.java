@@ -6,16 +6,17 @@ import com.seffafbagis.api.enums.UserStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.Instant;
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-
 
 /**
  * User entity için Repository interface.
@@ -32,7 +33,7 @@ import java.util.UUID;
  * @version 1.0
  */
 @Repository
-public interface UserRepository extends JpaRepository<User, UUID> {
+public interface UserRepository extends JpaRepository<User, UUID>, JpaSpecificationExecutor<User> {
 
     // ==================== TEMEL SORGULAR ====================
 
@@ -71,7 +72,7 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     /**
      * Rol ve duruma göre kullanıcıları bulur.
      * 
-     * @param role Kullanıcı rolü
+     * @param role   Kullanıcı rolü
      * @param status Kullanıcı durumu
      * @return Kullanıcı listesi
      */
@@ -82,7 +83,7 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     /**
      * Belirli bir role sahip kullanıcıları sayfalama ile bulur.
      * 
-     * @param role Kullanıcı rolü
+     * @param role     Kullanıcı rolü
      * @param pageable Sayfalama bilgisi
      * @return Sayfalanmış kullanıcı listesi
      */
@@ -91,7 +92,7 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     /**
      * Belirli bir duruma sahip kullanıcıları sayfalama ile bulur.
      * 
-     * @param status Kullanıcı durumu
+     * @param status   Kullanıcı durumu
      * @param pageable Sayfalama bilgisi
      * @return Sayfalanmış kullanıcı listesi
      */
@@ -100,8 +101,8 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     /**
      * Rol ve duruma göre kullanıcıları sayfalama ile bulur.
      * 
-     * @param role Kullanıcı rolü
-     * @param status Kullanıcı durumu
+     * @param role     Kullanıcı rolü
+     * @param status   Kullanıcı durumu
      * @param pageable Sayfalama bilgisi
      * @return Sayfalanmış kullanıcı listesi
      */
@@ -131,16 +132,16 @@ public interface UserRepository extends JpaRepository<User, UUID> {
      * @param date Başlangıç tarihi
      * @return Kullanıcı listesi
      */
-    List<User> findByCreatedAtAfter(Instant date);
+    List<User> findByCreatedAtAfter(OffsetDateTime date);
 
     /**
      * Belirli bir tarih aralığında kayıt olan kullanıcıları bulur.
      * 
      * @param startDate Başlangıç tarihi
-     * @param endDate Bitiş tarihi
+     * @param endDate   Bitiş tarihi
      * @return Kullanıcı listesi
      */
-    List<User> findByCreatedAtBetween(Instant startDate, Instant endDate);
+    List<User> findByCreatedAtBetween(OffsetDateTime startDate, OffsetDateTime endDate);
 
     /**
      * Belirli bir tarihten sonra giriş yapan kullanıcıları bulur.
@@ -182,6 +183,14 @@ public interface UserRepository extends JpaRepository<User, UUID> {
      */
     long countByEmailVerifiedTrue();
 
+    /**
+     * Belirli bir tarihten sonra kayıt olan kullanıcı sayısını döndürür.
+     * 
+     * @param date Başlangıç tarihi
+     * @return Kullanıcı sayısı
+     */
+    long countByCreatedAtAfter(OffsetDateTime date);
+
     // ==================== ÖZEL SORGULAR (JPQL) ====================
 
     /**
@@ -207,7 +216,7 @@ public interface UserRepository extends JpaRepository<User, UUID> {
      * E-posta adresinde arama yapar.
      * 
      * @param searchTerm Arama terimi
-     * @param pageable Sayfalama bilgisi
+     * @param pageable   Sayfalama bilgisi
      * @return Sayfalanmış kullanıcı listesi
      */
     @Query("SELECT u FROM User u WHERE LOWER(u.email) LIKE LOWER(CONCAT('%', :searchTerm, '%'))")
@@ -228,7 +237,7 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     /**
      * Kullanıcının son giriş tarihini günceller.
      * 
-     * @param userId Kullanıcı ID
+     * @param userId    Kullanıcı ID
      * @param loginTime Giriş zamanı
      */
     @Modifying
@@ -248,8 +257,8 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     /**
      * Kullanıcının e-posta doğrulama durumunu günceller.
      * 
-     * @param userId Kullanıcı ID
-     * @param verified Doğrulama durumu
+     * @param userId     Kullanıcı ID
+     * @param verified   Doğrulama durumu
      * @param verifiedAt Doğrulama zamanı
      */
     @Modifying
@@ -262,7 +271,7 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     /**
      * Kullanıcının şifresini günceller.
      * 
-     * @param userId Kullanıcı ID
+     * @param userId       Kullanıcı ID
      * @param passwordHash Yeni şifre hash'i
      */
     @Modifying

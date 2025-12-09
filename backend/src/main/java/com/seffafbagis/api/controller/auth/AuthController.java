@@ -1,20 +1,27 @@
 package com.seffafbagis.api.controller.auth;
 
 import com.seffafbagis.api.dto.request.auth.ChangePasswordRequest;
+import com.seffafbagis.api.dto.request.auth.ForgotPasswordRequest;
 import com.seffafbagis.api.dto.request.auth.LoginRequest;
 import com.seffafbagis.api.dto.request.auth.LogoutRequest;
 import com.seffafbagis.api.dto.request.auth.PasswordResetRequest;
 import com.seffafbagis.api.dto.request.auth.RefreshTokenRequest;
 import com.seffafbagis.api.dto.request.auth.RegisterRequest;
-import com.seffafbagis.api.dto.response.ApiResponse;
+import com.seffafbagis.api.dto.request.auth.ResetPasswordRequest;
+import com.seffafbagis.api.dto.request.auth.ResendVerificationRequest;
+import com.seffafbagis.api.dto.request.auth.VerifyEmailRequest;
+import com.seffafbagis.api.dto.response.common.ApiResponse;
 import com.seffafbagis.api.dto.response.auth.AuthResponse;
 import com.seffafbagis.api.service.auth.AuthService;
+import com.seffafbagis.api.service.auth.PasswordResetService;
+import com.seffafbagis.api.service.auth.EmailVerificationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -41,12 +48,20 @@ public class AuthController {
     private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
 
     private final AuthService authService;
+    private final PasswordResetService passwordResetService;
+    private final EmailVerificationService emailVerificationService;
 
     /**
      * Constructor injection.
      */
-    public AuthController(AuthService authService) {
+    @Autowired
+    public AuthController(
+            AuthService authService,
+            PasswordResetService passwordResetService,
+            EmailVerificationService emailVerificationService) {
         this.authService = authService;
+        this.passwordResetService = passwordResetService;
+        this.emailVerificationService = emailVerificationService;
     }
 
     // ==================== KAYIT ====================
@@ -60,10 +75,7 @@ public class AuthController {
      * @return AuthResponse
      */
     @PostMapping("/register")
-    @Operation(
-        summary = "Kullanıcı kaydı",
-        description = "Yeni kullanıcı hesabı oluşturur. E-posta doğrulama gerektirir."
-    )
+    @Operation(summary = "Kullanıcı kaydı", description = "Yeni kullanıcı hesabı oluşturur. E-posta doğrulama gerektirir.")
     public ResponseEntity<ApiResponse<AuthResponse>> register(
             @Valid @RequestBody RegisterRequest request) {
 
@@ -72,9 +84,8 @@ public class AuthController {
         AuthResponse authResponse = authService.register(request);
 
         ApiResponse<AuthResponse> response = ApiResponse.success(
-            "Kayıt başarılı. Lütfen e-posta adresinizi doğrulayın.",
-            authResponse
-        );
+                "Kayıt başarılı. Lütfen e-posta adresinizi doğrulayın.",
+                authResponse);
 
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
@@ -90,10 +101,7 @@ public class AuthController {
      * @return AuthResponse
      */
     @PostMapping("/login")
-    @Operation(
-        summary = "Kullanıcı girişi",
-        description = "E-posta ve şifre ile giriş yapar. JWT token döner."
-    )
+    @Operation(summary = "Kullanıcı girişi", description = "E-posta ve şifre ile giriş yapar. JWT token döner.")
     public ResponseEntity<ApiResponse<AuthResponse>> login(
             @Valid @RequestBody LoginRequest request) {
 
@@ -102,9 +110,8 @@ public class AuthController {
         AuthResponse authResponse = authService.login(request);
 
         ApiResponse<AuthResponse> response = ApiResponse.success(
-            "Giriş başarılı",
-            authResponse
-        );
+                "Giriş başarılı",
+                authResponse);
 
         return ResponseEntity.ok(response);
     }
@@ -120,10 +127,7 @@ public class AuthController {
      * @return AuthResponse (yeni tokenlar)
      */
     @PostMapping("/refresh")
-    @Operation(
-        summary = "Token yenileme",
-        description = "Refresh token ile yeni access token alır."
-    )
+    @Operation(summary = "Token yenileme", description = "Refresh token ile yeni access token alır.")
     public ResponseEntity<ApiResponse<AuthResponse>> refreshToken(
             @Valid @RequestBody RefreshTokenRequest request) {
 
@@ -132,9 +136,8 @@ public class AuthController {
         AuthResponse authResponse = authService.refreshToken(request);
 
         ApiResponse<AuthResponse> response = ApiResponse.success(
-            "Token yenilendi",
-            authResponse
-        );
+                "Token yenilendi",
+                authResponse);
 
         return ResponseEntity.ok(response);
     }
@@ -153,10 +156,7 @@ public class AuthController {
      * @return Success response
      */
     @PostMapping("/logout")
-    @Operation(
-        summary = "Kullanıcı çıkışı",
-        description = "Mevcut oturumu sonlandırır. Refresh token'ı iptal eder."
-    )
+    @Operation(summary = "Kullanıcı çıkışı", description = "Mevcut oturumu sonlandırır. Refresh token'ı iptal eder.")
     public ResponseEntity<ApiResponse<String>> logout(
             @Valid @RequestBody LogoutRequest request) {
 
@@ -165,9 +165,8 @@ public class AuthController {
         authService.logout(request);
 
         ApiResponse<String> response = ApiResponse.success(
-            "Çıkış başarılı"
-        );
-        
+                "Çıkış başarılı");
+
         return ResponseEntity.ok(response);
     }
 
@@ -182,10 +181,7 @@ public class AuthController {
      * @return Success response
      */
     @PostMapping("/change-password")
-    @Operation(
-        summary = "Şifre değiştirme",
-        description = "Giriş yapmış kullanıcının şifresini değiştirir."
-    )
+    @Operation(summary = "Şifre değiştirme", description = "Giriş yapmış kullanıcının şifresini değiştirir.")
     public ResponseEntity<ApiResponse<Void>> changePassword(
             @Valid @RequestBody ChangePasswordRequest request) {
 
@@ -208,21 +204,17 @@ public class AuthController {
      * @return Success response
      */
     @PostMapping("/forgot-password")
-    @Operation(
-        summary = "Şifremi unuttum",
-        description = "Şifre sıfırlama linki e-posta ile gönderilir."
-    )
+    @Operation(summary = "Şifremi unuttum", description = "Şifre sıfırlama linki e-posta ile gönderilir.")
     public ResponseEntity<ApiResponse<Void>> forgotPassword(
-            @Valid @RequestBody PasswordResetRequest request) {
+            @Valid @RequestBody ForgotPasswordRequest request) {
 
         logger.info("Forgot password endpoint called: {}", request.getEmail());
 
-        authService.requestPasswordReset(request);
+        passwordResetService.initiatePasswordReset(request.getEmail());
 
         // GÜVENLİK: Her durumda aynı mesajı döndür
         ApiResponse<Void> response = ApiResponse.success(
-            "Eğer e-posta adresi kayıtlı ise şifre sıfırlama linki gönderildi"
-        );
+                "Eğer e-posta adresi kayıtlı ise şifre sıfırlama linki gönderildi");
         return ResponseEntity.ok(response);
     }
 
@@ -235,16 +227,13 @@ public class AuthController {
      * @return Success response
      */
     @PostMapping("/reset-password")
-    @Operation(
-        summary = "Şifre sıfırlama",
-        description = "E-posta ile gelen token ile yeni şifre belirlenir."
-    )
+    @Operation(summary = "Şifre sıfırlama", description = "E-posta ile gelen token ile yeni şifre belirlenir.")
     public ResponseEntity<ApiResponse<Void>> resetPassword(
-            @Valid @RequestBody PasswordResetConfirmRequest request) {
+            @Valid @RequestBody ResetPasswordRequest request) {
 
         logger.info("Reset password endpoint called");
 
-        authService.confirmPasswordReset(request);
+        passwordResetService.resetPassword(request);
 
         ApiResponse<Void> response = ApiResponse.success("Şifre başarıyla sıfırlandı");
         return ResponseEntity.ok(response);
@@ -261,16 +250,13 @@ public class AuthController {
      * @return Success response
      */
     @PostMapping("/verify-email")
-    @Operation(
-        summary = "E-posta doğrulama",
-        description = "E-posta ile gelen doğrulama linkindeki token ile hesap aktif edilir."
-    )
+    @Operation(summary = "E-posta doğrulama", description = "E-posta ile gelen doğrulama linkindeki token ile hesap aktif edilir.")
     public ResponseEntity<ApiResponse<Void>> verifyEmail(
             @Valid @RequestBody VerifyEmailRequest request) {
 
         logger.info("Verify email endpoint called");
 
-        authService.verifyEmail(request.getToken());
+        emailVerificationService.verifyEmail(request.getToken());
 
         ApiResponse<Void> response = ApiResponse.success("E-posta başarıyla doğrulandı");
         return ResponseEntity.ok(response);
@@ -281,25 +267,21 @@ public class AuthController {
      * 
      * POST /api/v1/auth/resend-verification
      * 
-     * @param email E-posta adresi
+     * @param request E-posta adresi
      * @return Success response
      */
     @PostMapping("/resend-verification")
-    @Operation(
-        summary = "Doğrulama e-postası yeniden gönder",
-        description = "E-posta doğrulama linkini tekrar gönderir."
-    )
+    @Operation(summary = "Doğrulama e-postası yeniden gönder", description = "E-posta doğrulama linkini tekrar gönderir.")
     public ResponseEntity<ApiResponse<Void>> resendVerification(
-            @RequestParam String email) {
+            @Valid @RequestBody ResendVerificationRequest request) {
 
-        logger.info("Resend verification endpoint called: {}", email);
+        logger.info("Resend verification endpoint called: {}", request.getEmail());
 
-        authService.resendVerificationEmail(email);
+        emailVerificationService.resendVerificationEmail(request.getEmail());
 
         // GÜVENLİK: Her durumda aynı mesajı döndür
         ApiResponse<Void> response = ApiResponse.success(
-            "Eğer e-posta adresi kayıtlı ve henüz doğrulanmamış ise doğrulama linki gönderildi"
-        );
+                "Eğer e-posta adresi kayıtlı ve henüz doğrulanmamış ise doğrulama linki gönderildi");
         return ResponseEntity.ok(response);
     }
 }

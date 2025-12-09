@@ -1,4 +1,4 @@
-package com.seffafbagis.api.dto.response;
+package com.seffafbagis.api.dto.response.common;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 
@@ -12,18 +12,18 @@ import java.time.Instant;
  * 
  * Başarılı response örneği:
  * {
- *   "success": true,
- *   "message": "İşlem başarılı",
- *   "data": { ... },
- *   "timestamp": "2024-01-15T10:30:00Z"
+ * "success": true,
+ * "message": "İşlem başarılı",
+ * "data": { ... },
+ * "timestamp": "2024-01-15T10:30:00Z"
  * }
  * 
  * Hata response örneği:
  * {
- *   "success": false,
- *   "message": "Kullanıcı bulunamadı",
- *   "errorCode": "USER_NOT_FOUND",
- *   "timestamp": "2024-01-15T10:30:00Z"
+ * "success": false,
+ * "message": "Kullanıcı bulunamadı",
+ * "errorCode": "USER_NOT_FOUND",
+ * "timestamp": "2024-01-15T10:30:00Z"
  * }
  * 
  * @param <T> Response data tipi
@@ -88,7 +88,7 @@ public class ApiResponse<T> {
      * 
      * @param success Başarılı mı
      * @param message Mesaj
-     * @param data Response data
+     * @param data    Response data
      */
     public ApiResponse(boolean success, String message, T data) {
         this.success = success;
@@ -113,7 +113,7 @@ public class ApiResponse<T> {
      * Başarılı response oluşturur (data ile).
      * 
      * @param message Başarı mesajı
-     * @param data Response data
+     * @param data    Response data
      * @return ApiResponse
      */
     public static <T> ApiResponse<T> success(String message, T data) {
@@ -144,7 +144,7 @@ public class ApiResponse<T> {
     /**
      * Hata response oluşturur (hata kodu ile).
      * 
-     * @param message Hata mesajı
+     * @param message   Hata mesajı
      * @param errorCode Hata kodu
      * @return ApiResponse
      */

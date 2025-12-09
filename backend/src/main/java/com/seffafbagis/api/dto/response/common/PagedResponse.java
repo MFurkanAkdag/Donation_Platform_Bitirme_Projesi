@@ -1,4 +1,4 @@
-package com.seffafbagis.api.dto.response;
+package com.seffafbagis.api.dto.response.common;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import org.springframework.data.domain.Page;
@@ -13,16 +13,16 @@ import java.util.List;
  * 
  * Response örneği:
  * {
- *   "success": true,
- *   "message": "Kullanıcılar listelendi",
- *   "data": [...],
- *   "page": 0,
- *   "size": 10,
- *   "totalElements": 100,
- *   "totalPages": 10,
- *   "first": true,
- *   "last": false,
- *   "timestamp": "2024-01-15T10:30:00Z"
+ * "success": true,
+ * "message": "Kullanıcılar listelendi",
+ * "data": [...],
+ * "page": 0,
+ * "size": 10,
+ * "totalElements": 100,
+ * "totalPages": 10,
+ * "first": true,
+ * "last": false,
+ * "timestamp": "2024-01-15T10:30:00Z"
  * }
  * 
  * @param <T> Liste elemanlarının tipi
@@ -119,7 +119,7 @@ public class PagedResponse<T> {
     /**
      * Mesaj ile constructor.
      * 
-     * @param page Spring Data Page objesi
+     * @param page    Spring Data Page objesi
      * @param message Mesaj
      */
     public PagedResponse(Page<T> page, String message) {
@@ -142,7 +142,7 @@ public class PagedResponse<T> {
     /**
      * Spring Data Page'den PagedResponse oluşturur (mesaj ile).
      * 
-     * @param page Spring Data Page objesi
+     * @param page    Spring Data Page objesi
      * @param message Mesaj
      * @return PagedResponse
      */
@@ -155,9 +155,9 @@ public class PagedResponse<T> {
      * 
      * Entity'den DTO'ya dönüşüm sonrası kullanılır.
      * 
-     * @param originalPage Orijinal Page
+     * @param originalPage     Orijinal Page
      * @param convertedContent Dönüştürülmüş içerik
-     * @param message Mesaj
+     * @param message          Mesaj
      * @return PagedResponse
      */
     public static <T, U> PagedResponse<T> of(Page<U> originalPage, List<T> convertedContent, String message) {

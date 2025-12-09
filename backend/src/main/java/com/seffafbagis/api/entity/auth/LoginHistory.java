@@ -3,16 +3,12 @@ package com.seffafbagis.api.entity.auth;
 import com.seffafbagis.api.entity.base.BaseEntity;
 import com.seffafbagis.api.entity.user.User;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
 
 /**
  * Login history entity for tracking user authentication attempts.
  * 
- * Records login attempts (successful and failed) with device and location information
+ * Records login attempts (successful and failed) with device and location
+ * information
  * for security monitoring and audit trails.
  * 
  * @author Furkan
@@ -20,11 +16,6 @@ import lombok.NoArgsConstructor;
  */
 @Entity
 @Table(name = "login_history")
-@Data
-@EqualsAndHashCode(callSuper = true)
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
 public class LoginHistory extends BaseEntity {
 
     /**
@@ -76,11 +67,95 @@ public class LoginHistory extends BaseEntity {
 
     /**
      * Reason for failed login attempt.
-     * Values: 'invalid_password', 'account_locked', 'account_suspended', 'email_not_verified'
+     * Values: 'invalid_password', 'account_locked', 'account_suspended',
+     * 'email_not_verified'
      * Only populated if loginStatus is 'failed' or 'blocked'.
      */
     @Column(name = "failure_reason", length = 100)
     private String failureReason;
+
+    // ==================== CONSTRUCTORS ====================
+
+    public LoginHistory() {
+    }
+
+    public LoginHistory(User user, String loginStatus, String ipAddress, String userAgent, String deviceType,
+            String locationCountry, String locationCity, String failureReason) {
+        this.user = user;
+        this.loginStatus = loginStatus;
+        this.ipAddress = ipAddress;
+        this.userAgent = userAgent;
+        this.deviceType = deviceType;
+        this.locationCountry = locationCountry;
+        this.locationCity = locationCity;
+        this.failureReason = failureReason;
+    }
+
+    // ==================== GETTERS AND SETTERS ====================
+
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
+    }
+
+    public String getLoginStatus() {
+        return loginStatus;
+    }
+
+    public void setLoginStatus(String loginStatus) {
+        this.loginStatus = loginStatus;
+    }
+
+    public String getIpAddress() {
+        return ipAddress;
+    }
+
+    public void setIpAddress(String ipAddress) {
+        this.ipAddress = ipAddress;
+    }
+
+    public String getUserAgent() {
+        return userAgent;
+    }
+
+    public void setUserAgent(String userAgent) {
+        this.userAgent = userAgent;
+    }
+
+    public String getDeviceType() {
+        return deviceType;
+    }
+
+    public void setDeviceType(String deviceType) {
+        this.deviceType = deviceType;
+    }
+
+    public String getLocationCountry() {
+        return locationCountry;
+    }
+
+    public void setLocationCountry(String locationCountry) {
+        this.locationCountry = locationCountry;
+    }
+
+    public String getLocationCity() {
+        return locationCity;
+    }
+
+    public void setLocationCity(String locationCity) {
+        this.locationCity = locationCity;
+    }
+
+    public String getFailureReason() {
+        return failureReason;
+    }
+
+    public void setFailureReason(String failureReason) {
+        this.failureReason = failureReason;
+    }
 
     // ==================== METHODS ====================
 

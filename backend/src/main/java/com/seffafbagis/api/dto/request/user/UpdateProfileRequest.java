@@ -1,163 +1,90 @@
 package com.seffafbagis.api.dto.request.user;
 
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
+import org.hibernate.validator.constraints.URL;
 
 /**
- * Profil güncelleme request DTO.
- * 
- * Kullanıcının profil bilgilerini güncellemesi için kullanılır.
- * Sadece gönderilen alanlar güncellenir (partial update).
- * 
- * Request örneği:
- * {
- *   "firstName": "Ahmet",
- *   "lastName": "Yılmaz",
- *   "displayName": "ahmetyilmaz",
- *   "bio": "Yazılım geliştirici",
- *   "preferredLanguage": "tr",
- *   "timezone": "Europe/Istanbul"
- * }
- * 
- * @author Furkan
- * @version 1.0
+ * Request DTO for updating user profile.
+ * All fields are optional to allow partial updates.
  */
 public class UpdateProfileRequest {
 
-    /**
-     * Ad.
-     */
-    @Size(max = 100, message = "Ad en fazla 100 karakter olabilir")
+    @Size(max = 100, message = "First name must be at most 100 characters")
     private String firstName;
 
-    /**
-     * Soyad.
-     */
-    @Size(max = 100, message = "Soyad en fazla 100 karakter olabilir")
+    @Size(max = 100, message = "Last name must be at most 100 characters")
     private String lastName;
 
-    /**
-     * Görünen ad.
-     */
-    @Size(max = 100, message = "Görünen ad en fazla 100 karakter olabilir")
+    @Size(max = 100, message = "Display name must be at most 100 characters")
     private String displayName;
 
-    /**
-     * Biyografi.
-     */
-    @Size(max = 500, message = "Biyografi en fazla 500 karakter olabilir")
+    @Size(max = 1000, message = "Bio must be at most 1000 characters")
     private String bio;
 
-    /**
-     * Tercih edilen dil.
-     * ISO 639-1 kodu.
-     */
-    @Size(max = 5, message = "Dil kodu en fazla 5 karakter olabilir")
+    @Size(max = 500, message = "Avatar URL must be at most 500 characters")
+    @URL(message = "Avatar URL must be a valid URL")
+    private String avatarUrl;
+
+    @Pattern(regexp = "^(tr|en)$", message = "Preferred language must be either 'tr' or 'en'")
     private String preferredLanguage;
 
-    /**
-     * Saat dilimi.
-     * IANA timezone formatı.
-     */
-    @Size(max = 50, message = "Saat dilimi en fazla 50 karakter olabilir")
+    @Size(max = 50, message = "Timezone must be at most 50 characters")
     private String timezone;
-
-    // ==================== CONSTRUCTOR ====================
-
-    /**
-     * Boş constructor.
-     */
-    public UpdateProfileRequest() {
-        // Boş constructor
-    }
-
-    // ==================== GETTER METODLARI ====================
 
     public String getFirstName() {
         return firstName;
+    }
+
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
     }
 
     public String getLastName() {
         return lastName;
     }
 
-    public String getDisplayName() {
-        return displayName;
-    }
-
-    public String getBio() {
-        return bio;
-    }
-
-    public String getPreferredLanguage() {
-        return preferredLanguage;
-    }
-
-    public String getTimezone() {
-        return timezone;
-    }
-
-    // ==================== SETTER METODLARI ====================
-
-    public void setFirstName(String firstName) {
-        this.firstName = firstName;
-    }
-
     public void setLastName(String lastName) {
         this.lastName = lastName;
+    }
+
+    public String getDisplayName() {
+        return displayName;
     }
 
     public void setDisplayName(String displayName) {
         this.displayName = displayName;
     }
 
+    public String getBio() {
+        return bio;
+    }
+
     public void setBio(String bio) {
         this.bio = bio;
+    }
+
+    public String getAvatarUrl() {
+        return avatarUrl;
+    }
+
+    public void setAvatarUrl(String avatarUrl) {
+        this.avatarUrl = avatarUrl;
+    }
+
+    public String getPreferredLanguage() {
+        return preferredLanguage;
     }
 
     public void setPreferredLanguage(String preferredLanguage) {
         this.preferredLanguage = preferredLanguage;
     }
 
+    public String getTimezone() {
+        return timezone;
+    }
+
     public void setTimezone(String timezone) {
         this.timezone = timezone;
-    }
-
-    // ==================== YARDIMCI METODLAR ====================
-
-    /**
-     * En az bir alan dolu mu kontrol eder.
-     * 
-     * @return Dolu alan varsa true
-     */
-    public boolean hasAnyField() {
-        if (firstName != null && !firstName.trim().isEmpty()) {
-            return true;
-        }
-        if (lastName != null && !lastName.trim().isEmpty()) {
-            return true;
-        }
-        if (displayName != null && !displayName.trim().isEmpty()) {
-            return true;
-        }
-        if (bio != null && !bio.trim().isEmpty()) {
-            return true;
-        }
-        if (preferredLanguage != null && !preferredLanguage.trim().isEmpty()) {
-            return true;
-        }
-        if (timezone != null && !timezone.trim().isEmpty()) {
-            return true;
-        }
-        return false;
-    }
-
-    @Override
-    public String toString() {
-        return "UpdateProfileRequest{" +
-                "firstName='" + firstName + '\'' +
-                ", lastName='" + lastName + '\'' +
-                ", displayName='" + displayName + '\'' +
-                ", bio='" + (bio != null ? bio.substring(0, Math.min(bio.length(), 20)) + "..." : null) + '\'' +
-                '}';
     }
 }
