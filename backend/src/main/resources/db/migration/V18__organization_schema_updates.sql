@@ -1,0 +1,4 @@
+ALTER TABLE organizations
+ADD COLUMN IF NOT EXISTS rejection_reason TEXT,
+ADD COLUMN IF NOT EXISTS resubmission_count INTEGER DEFAULT 0,
+ADD COLUMN IF NOT EXISTS last_resubmission_at TIMESTAMPTZ;

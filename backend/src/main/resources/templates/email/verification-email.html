@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <title>E-posta Doğrulama</title>
+</head>
+
+<body>
+    <h1>E-posta Doğrulama</h1>
+    <p>Merhaba <span th:text="${name}">Kullanıcı</span>,</p>
+    <p>Hesabınızı doğrulamak için doğrulama kodunuz:</p>
+    <h2 th:text="${token}">CODE</h2>
+    <p>Teşekkürler.</p>
+</body>
+
+</html>

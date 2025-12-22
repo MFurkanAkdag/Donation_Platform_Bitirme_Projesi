@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <title>Kampanya Durumu</title>
+</head>
+
+<body>
+    <h1>Kampanya Durumu Güncellemesi</h1>
+    <p>Sayın <span th:text="${orgName}">Kurum</span>,</p>
+    <p><span th:text="${campaignTitle}">Kampanya</span> başlıklı kampanyanız hakkında bilgilendirme:</p>
+    <p th:if="${approved}">Kampanyanız <strong>ONAYLANDI</strong>.</p>
+    <p th:unless="${approved}">Kampanyanız <strong>REDDEDİLDİ</strong>.</p>
+    <p th:if="${reason}">Sebep: <span th:text="${reason}">Sebep</span></p>
+</body>
+
+</html>
