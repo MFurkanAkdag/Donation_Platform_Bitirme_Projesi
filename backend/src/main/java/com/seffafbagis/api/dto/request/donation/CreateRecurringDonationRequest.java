@@ -12,6 +12,9 @@ import java.util.UUID;
  * DTO for creating a recurring donation subscription.
  */
 @Data
+@lombok.Builder
+@lombok.NoArgsConstructor
+@lombok.AllArgsConstructor
 public class CreateRecurringDonationRequest {
 
     private UUID campaignId;
@@ -21,6 +24,8 @@ public class CreateRecurringDonationRequest {
     @NotNull(message = "Bağış tutarı gereklidir")
     @DecimalMin(value = "1.00", message = "Minimum bağış tutarı 1 TL")
     private BigDecimal amount;
+
+    private String currency;
 
     @NotBlank(message = "Bağış sıklığı gereklidir")
     private String frequency; // 'weekly', 'monthly', 'yearly'

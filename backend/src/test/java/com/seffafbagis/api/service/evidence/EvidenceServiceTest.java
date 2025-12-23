@@ -92,7 +92,7 @@ class EvidenceServiceTest {
         UUID campaignId = campaign.getId();
         CreateEvidenceRequest request = new CreateEvidenceRequest();
         request.setCampaignId(campaignId);
-        request.setEvidenceType(EvidenceType.INVOICE);
+        request.setEvidenceType(EvidenceType.INVOICE.name());
         request.setTitle("Test Evidence");
         request.setAmountSpent(new BigDecimal("1000"));
         request.setSpendDate(LocalDate.now());
@@ -111,14 +111,14 @@ class EvidenceServiceTest {
 
         EvidenceResponse response = new EvidenceResponse();
         response.setId(evidence.getId());
-        response.setStatus(EvidenceStatus.PENDING);
+        response.setStatus(EvidenceStatus.PENDING.name());
 
         when(evidenceMapper.toResponse(evidence)).thenReturn(response);
 
         EvidenceResponse result = evidenceService.uploadEvidence(request);
 
         assertNotNull(result);
-        assertEquals(EvidenceStatus.PENDING, result.getStatus());
+        assertEquals(EvidenceStatus.PENDING.name(), result.getStatus());
         verify(evidenceRepository).save(any(Evidence.class));
     }
 

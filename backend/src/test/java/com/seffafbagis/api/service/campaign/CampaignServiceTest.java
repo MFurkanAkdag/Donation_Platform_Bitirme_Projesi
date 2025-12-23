@@ -34,6 +34,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -275,7 +276,7 @@ class CampaignServiceTest {
 
                 campaignService.deleteCampaign(testCampaign.getId());
 
-                verify(campaignRepository).delete(testCampaign);
+                verify(campaignRepository).delete(eq(testCampaign));
             }
         }
 
@@ -291,7 +292,7 @@ class CampaignServiceTest {
                 when(organizationRepository.findByUserId(testUser.getId())).thenReturn(Optional.of(testOrg));
 
                 assertThrows(BadRequestException.class, () -> campaignService.deleteCampaign(testCampaign.getId()));
-                verify(campaignRepository, never()).delete(any());
+                verify(campaignRepository, never()).delete(any(Campaign.class));
             }
         }
 

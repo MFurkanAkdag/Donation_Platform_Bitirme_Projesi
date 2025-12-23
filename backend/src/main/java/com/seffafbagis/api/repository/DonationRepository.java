@@ -20,38 +20,53 @@ import java.util.UUID;
 @Repository
 public interface DonationRepository extends JpaRepository<Donation, UUID> {
 
-    Page<Donation> findAllByDonorId(UUID donorId, Pageable pageable);
+        Page<Donation> findAllByDonorId(UUID donorId, Pageable pageable);
 
-    Page<Donation> findByDonorId(UUID donorId, Pageable pageable);
+        Page<Donation> findByDonorId(UUID donorId, Pageable pageable);
 
-    Page<Donation> findAllByCampaignId(UUID campaignId, Pageable pageable);
+        Page<Donation> findAllByCampaignId(UUID campaignId, Pageable pageable);
 
-    Page<Donation> findByCampaignId(UUID campaignId, Pageable pageable);
+        Page<Donation> findByCampaignId(UUID campaignId, Pageable pageable);
 
-    @Query("SELECT d FROM Donation d WHERE d.campaign.id = :campaignId AND d.isAnonymous = false AND d.status = :status")
-    Page<Donation> findByCampaignIdAndIsAnonymousFalseAndStatus(
-            @Param("campaignId") UUID campaignId,
-            @Param("status") DonationStatus status,
-            Pageable pageable);
+        @Query("SELECT d FROM Donation d WHERE d.campaign.id = :campaignId AND d.isAnonymous = false AND d.status = :status")
+        Page<Donation> findByCampaignIdAndIsAnonymousFalseAndStatus(
+                        @Param("campaignId") UUID campaignId,
+                        @Param("status") DonationStatus status,
+                        Pageable pageable);
 
-    @Query("SELECT d FROM Donation d WHERE d.campaign.organization.id = :organizationId")
-    Page<Donation> findByCampaignOrganizationId(@Param("organizationId") UUID organizationId, Pageable pageable);
+        @Query("SELECT d FROM Donation d WHERE d.campaign.organization.id = :organizationId")
+        Page<Donation> findByCampaignOrganizationId(@Param("organizationId") UUID organizationId, Pageable pageable);
 
-    List<Donation> findAllByCampaignIdAndStatus(UUID campaignId, DonationStatus status);
+        List<Donation> findAllByCampaignIdAndStatus(UUID campaignId, DonationStatus status);
 
-    @Query("SELECT SUM(d.amount) FROM Donation d WHERE d.campaign.id = :campaignId AND d.status = 'COMPLETED'")
-    BigDecimal sumCompletedAmountByCampaignId(@Param("campaignId") UUID campaignId);
+        @Query("SELECT SUM(d.amount) FROM Donation d WHERE d.campaign.id = :campaignId AND d.status = 'COMPLETED'")
+        BigDecimal sumCompletedAmountByCampaignId(@Param("campaignId") UUID campaignId);
 
-    @Query("SELECT COUNT(DISTINCT d.donor.id) FROM Donation d WHERE d.campaign.id = :campaignId AND d.status = 'COMPLETED'")
-    Long countUniqueDonorsByCampaignId(@Param("campaignId") UUID campaignId);
+        @Query("SELECT COUNT(DISTINCT d.donor.id) FROM Donation d WHERE d.campaign.id = :campaignId AND d.status = 'COMPLETED'")
+        Long countUniqueDonorsByCampaignId(@Param("campaignId") UUID campaignId);
 
-    long countByCampaignId(UUID campaignId);
+        long countByCampaignId(UUID campaignId);
 
-    long countByDonorId(UUID donorId);
+        long countByDonorId(UUID donorId);
 
-    long countByStatus(DonationStatus status);
+        long countByStatus(DonationStatus status);
 
-    @Query("SELECT d FROM Donation d WHERE d.createdAt >= :startDate AND d.createdAt <= :endDate")
-    List<Donation> findAllByDateRange(@Param("startDate") OffsetDateTime startDate,
-            @Param("endDate") OffsetDateTime endDate);
+        @Query("SELECT d FROM Donation d WHERE d.createdAt >= :startDate AND d.createdAt <= :endDate")
+        List<Donation> findAllByDateRange(@Param("startDate") OffsetDateTime startDate,
+                        @Param("endDate") OffsetDateTime endDate);
+
+        @Query("SELECT SUM(d.amount) FROM Donation d WHERE d.campaign.id = :campaignId AND d.status = :status")
+        BigDecimal sumAmountByCampaignIdAndStatus(@Param("campaignId") UUID campaignId,
+                        @Param("status") DonationStatus status);
+
+        List<Donation> findByCampaignIdAndStatus(UUID campaignId, DonationStatus status);
+
+        // Better:
+        @Query("SELECT d FROM Donation d WHERE d.campaign.id = :campaignId AND d.status = :status")
+        Page<Donation> findTopDonationsByCampaignId(@Param("campaignId") UUID campaignId,
+                        @Param("status") DonationStatus status, Pageable pageable);
+
+        @Query("SELECT COUNT(DISTINCT d.donor.id) FROM Donation d WHERE d.campaign.id = :campaignId AND d.status = :status")
+        long countDistinctDonorsByCampaignIdAndStatus(@Param("campaignId") UUID campaignId,
+                        @Param("status") DonationStatus status);
 }

@@ -23,6 +23,8 @@ public interface BankTransferReferenceRepository extends JpaRepository<BankTrans
 
     Optional<BankTransferReference> findByReferenceCode(String referenceCode);
 
+    Optional<BankTransferReference> findByReferenceCodeAndStatus(String referenceCode, String status);
+
     Page<BankTransferReference> findAllByStatus(String status, Pageable pageable);
 
     Page<BankTransferReference> findByStatus(String status, Pageable pageable);
@@ -42,4 +44,8 @@ public interface BankTransferReferenceRepository extends JpaRepository<BankTrans
     List<BankTransferReference> findByStatusAndExpiresAtBefore(String status, OffsetDateTime expiresAt);
 
     boolean existsByReferenceCode(String referenceCode);
+
+    List<BankTransferReference> findByStatus(String status);
+
+    List<BankTransferReference> findByCampaignId(UUID campaignId);
 }

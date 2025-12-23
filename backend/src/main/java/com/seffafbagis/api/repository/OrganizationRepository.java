@@ -19,29 +19,31 @@ import java.util.UUID;
 @Repository
 public interface OrganizationRepository extends JpaRepository<Organization, UUID> {
 
-    Optional<Organization> findByUserId(UUID userId);
+        Optional<Organization> findByUserId(UUID userId);
 
-    Optional<Organization> findByTaxNumber(String taxNumber);
+        Optional<Organization> findByTaxNumber(String taxNumber);
 
-    Page<Organization> findAllByVerificationStatus(VerificationStatus status, Pageable pageable);
+        Page<Organization> findAllByVerificationStatus(VerificationStatus status, Pageable pageable);
 
-    Page<Organization> findByVerificationStatus(VerificationStatus status, Pageable pageable);
+        Page<Organization> findByVerificationStatus(VerificationStatus status, Pageable pageable);
 
-    Page<Organization> findByVerificationStatusOrderByIsFeaturedDescCreatedAtDesc(VerificationStatus status,
-            Pageable pageable);
+        List<Organization> findByVerificationStatus(VerificationStatus status);
 
-    List<Organization> findByIsFeaturedTrueAndVerificationStatus(VerificationStatus status);
+        Page<Organization> findByVerificationStatusOrderByIsFeaturedDescCreatedAtDesc(VerificationStatus status,
+                        Pageable pageable);
 
-    @Query("SELECT o FROM Organization o WHERE " +
-            "(LOWER(o.legalName) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
-            "LOWER(o.displayName) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
-            "LOWER(o.description) LIKE LOWER(CONCAT('%', :keyword, '%'))) AND " +
-            "o.verificationStatus = :status")
-    Page<Organization> searchByKeyword(@Param("keyword") String keyword,
-            @Param("status") VerificationStatus status,
-            Pageable pageable);
+        List<Organization> findByIsFeaturedTrueAndVerificationStatus(VerificationStatus status);
 
-    boolean existsByTaxNumber(String taxNumber);
+        @Query("SELECT o FROM Organization o WHERE " +
+                        "(LOWER(o.legalName) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
+                        "LOWER(o.displayName) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
+                        "LOWER(o.description) LIKE LOWER(CONCAT('%', :keyword, '%'))) AND " +
+                        "o.verificationStatus = :status")
+        Page<Organization> searchByKeyword(@Param("keyword") String keyword,
+                        @Param("status") VerificationStatus status,
+                        Pageable pageable);
 
-    long countByVerificationStatus(VerificationStatus status);
+        boolean existsByTaxNumber(String taxNumber);
+
+        long countByVerificationStatus(VerificationStatus status);
 }

@@ -29,6 +29,8 @@ public interface CampaignFollowerRepository extends JpaRepository<CampaignFollow
 
     boolean existsByCampaignIdAndUserId(UUID campaignId, UUID userId);
 
+    boolean existsByUserIdAndCampaignId(UUID userId, UUID campaignId);
+
     long countByCampaignId(UUID campaignId);
 
     void deleteByCampaignIdAndUserId(UUID campaignId, UUID userId);

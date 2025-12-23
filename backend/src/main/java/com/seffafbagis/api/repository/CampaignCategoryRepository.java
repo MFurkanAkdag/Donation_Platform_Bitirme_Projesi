@@ -15,6 +15,8 @@ public interface CampaignCategoryRepository extends JpaRepository<CampaignCatego
 
     List<CampaignCategory> findAllByCampaignId(UUID campaignId);
 
+    List<CampaignCategory> findByCampaignId(UUID campaignId);
+
     List<CampaignCategory> findAllByCategoryId(UUID categoryId);
 
     boolean existsByCampaignIdAndCategoryId(UUID campaignId, UUID categoryId);

@@ -12,6 +12,9 @@ import java.util.UUID;
  * DTO for initiating a bank transfer donation.
  */
 @Data
+@lombok.Builder
+@lombok.NoArgsConstructor
+@lombok.AllArgsConstructor
 public class InitiateBankTransferRequest {
 
     @NotNull(message = "Kampanya ID gereklidir")

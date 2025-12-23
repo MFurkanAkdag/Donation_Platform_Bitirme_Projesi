@@ -20,6 +20,8 @@ public class CreateDonationRequest {
     @DecimalMin(value = "1.00", message = "Minimum bağış tutarı 1 TL")
     private BigDecimal amount;
 
+    private String currency;
+
     private UUID donationTypeId;
 
     private Boolean isAnonymous = false;

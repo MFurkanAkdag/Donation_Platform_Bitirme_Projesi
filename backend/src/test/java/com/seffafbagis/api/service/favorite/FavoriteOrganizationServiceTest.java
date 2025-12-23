@@ -275,10 +275,11 @@ public class FavoriteOrganizationServiceTest {
     private OrganizationResponse createOrganizationResponse(UUID id, String name) {
         OrganizationResponse org = new OrganizationResponse();
         org.setId(id);
-        org.setName(name);
+        org.setId(id);
+        org.setLegalName(name);
         org.setDescription("Test description");
-        org.setVerificationStatus("VERIFIED");
-        org.setLogo("https://example.com/logo.png");
+        org.setVerificationStatus(com.seffafbagis.api.enums.VerificationStatus.APPROVED);
+        org.setLogoUrl("https://example.com/logo.png");
         org.setActiveCampaignsCount(3);
         org.setTotalRaised(new BigDecimal("10000.00"));
         return org;

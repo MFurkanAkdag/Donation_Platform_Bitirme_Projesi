@@ -81,9 +81,9 @@ public class CampaignCategoryRepositoryTest {
         cc.setCategory(category);
         cc.setIsPrimary(true);
 
-        // Manual setting of ID might be required if @MapsId logic behaves strictly
-        cc.getId().setCampaignId(campaign.getId());
-        cc.getId().setCategoryId(category.getId());
+        // Manual setting of ID is not required for BaseEntity
+        // cc.getId().setCampaignId(campaign.getId());
+        // cc.getId().setCategoryId(category.getId());
 
         campaignCategoryRepository.save(cc);
 

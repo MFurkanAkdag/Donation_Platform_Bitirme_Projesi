@@ -35,4 +35,12 @@ public interface RecurringDonationRepository extends JpaRepository<RecurringDona
     long countByDonorId(UUID donorId);
 
     boolean existsByDonorIdAndCampaignId(UUID donorId, UUID campaignId);
+
+    List<RecurringDonation> findByOrganizationId(UUID organizationId);
+
+    List<RecurringDonation> findByCampaignId(UUID campaignId);
+
+    long countByDonorIdAndStatus(UUID donorId, String status);
+
+    List<RecurringDonation> findByDonorIdAndStatus(UUID donorId, String status);
 }

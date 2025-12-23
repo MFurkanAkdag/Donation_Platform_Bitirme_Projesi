@@ -61,7 +61,7 @@ class CleanupSchedulerTest {
 
         scheduler.performCleanup();
 
-        verify(refreshTokenRepository, never()).deleteExpiredTokens(any());
-        verify(passwordResetTokenRepository, never()).deleteExpiredTokens(any());
+        verify(refreshTokenRepository, never()).deleteExpiredTokens(any(OffsetDateTime.class));
+        verify(passwordResetTokenRepository, never()).deleteExpiredTokens(any(Instant.class));
     }
 }
