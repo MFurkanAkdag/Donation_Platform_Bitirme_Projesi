@@ -110,9 +110,12 @@ export default function CampaignDetailPage() {
                     />
                     <div className="flex-1">
                       <div className="flex items-center gap-2">
-                        <h3 className="text-lg font-bold text-gray-900">
+                        <Link 
+                          href={`/organizations/${campaign.organizationId}`}
+                          className="text-lg font-bold text-gray-900 hover:text-blue-600 transition-colors"
+                        >
                           {ngo.name}
-                        </h3>
+                        </Link>
                         {ngo.verified && (
                           <span className="text-blue-600 text-xl">✓</span>
                         )}

@@ -26,7 +26,12 @@ export default function CampaignCard({ campaign }: CampaignCardProps) {
         </div>
         <div className="p-4">
           <div className="flex items-center gap-2 mb-2">
-            <span className="text-sm text-gray-600">{campaign.ngoName}</span>
+            <Link 
+              href={`/organizations/${campaign.organizationId}`}
+              className="text-sm text-gray-600 hover:text-blue-600 transition-colors"
+            >
+              {campaign.ngoName}
+            </Link>
             <span className="text-blue-600">✓</span>
           </div>
           <h3 className="text-xl font-bold text-gray-900 mb-2 line-clamp-2">

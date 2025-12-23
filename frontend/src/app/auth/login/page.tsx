@@ -119,6 +119,9 @@ export default function LoginPage() {
               <p className="text-sm text-gray-700">
                 <strong>Email:</strong> admin@example.com<br />
                 <strong>Password:</strong> Admin123!
+                <br /> <br />
+                <strong>Email:</strong> foundation@example.com<br />
+                <strong>Password:</strong> Foundation123!
               </p>
             </div>
           </div>

@@ -2,6 +2,10 @@ export interface Campaign {
   id: string;
   title: string;
   ngoName: string;
+  organizationId: string;
+  organizationName: string;
+  organizationLogo?: string;
+  transparencyScore?: number;
   description: string;
   detailedDescription: string;
   image: string;
@@ -56,6 +60,10 @@ export const mockCampaigns: Campaign[] = [
     id: "1",
     title: "Emergency Food Relief for Gaza",
     ngoName: "International Relief Fund",
+    organizationId: "1",
+    organizationName: "International Relief Fund",
+    organizationLogo: "https://images.unsplash.com/photo-1532629345422-7515f3d16bb6?w=200&h=200&fit=crop",
+    transparencyScore: 94,
     description: "Providing essential food supplies to families affected by the humanitarian crisis",
     detailedDescription: `This emergency campaign aims to provide immediate food relief to families in Gaza who are facing severe food shortages. Your donation will help us purchase and distribute food packages containing rice, flour, cooking oil, canned goods, and other essential items.
 
@@ -75,6 +83,10 @@ The situation is urgent, and every contribution makes a difference. All donation
     id: "2",
     title: "Build a School in Rural Africa",
     ngoName: "Hope for Children Foundation",
+    organizationId: "2",
+    organizationName: "Hope for Children Foundation",
+    organizationLogo: "https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?w=200&h=200&fit=crop",
+    transparencyScore: 87,
     description: "Constructing a primary school to provide education for 500 children",
     detailedDescription: `Education is the foundation for breaking the cycle of poverty. This campaign aims to build a fully-equipped primary school in a rural African community where children currently have no access to formal education.
 
@@ -96,6 +108,10 @@ Your donation will directly contribute to giving these children the education th
     id: "3",
     title: "Winter Clothing for Syrian Refugees",
     ngoName: "International Relief Fund",
+    organizationId: "1",
+    organizationName: "International Relief Fund",
+    organizationLogo: "https://images.unsplash.com/photo-1532629345422-7515f3d16bb6?w=200&h=200&fit=crop",
+    transparencyScore: 94,
     description: "Warm clothing and blankets for refugee families facing harsh winter conditions",
     detailedDescription: `As winter approaches, thousands of Syrian refugee families in camps are facing freezing temperatures without adequate protection. This campaign provides winter clothing packages and thermal blankets to help them survive the cold months ahead.
 
@@ -122,6 +138,10 @@ No family should suffer through winter without warmth. Your generosity can make 
     id: "4",
     title: "Clean Water Wells in Bangladesh",
     ngoName: "Clean Water Initiative",
+    organizationId: "3",
+    organizationName: "Clean Water Initiative",
+    organizationLogo: "https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=200&h=200&fit=crop",
+    transparencyScore: 91,
     description: "Installing 20 water wells to provide clean drinking water to rural villages",
     detailedDescription: `Access to clean water is a fundamental human right, yet millions in rural Bangladesh still lack this basic necessity. This campaign will install 20 deep tube wells in villages where families currently walk miles daily to fetch water, often from contaminated sources.
 
@@ -147,6 +167,10 @@ We work with local engineers and involve community members in the installation p
     id: "5",
     title: "Medical Supplies for Yemen Crisis",
     ngoName: "International Relief Fund",
+    organizationId: "1",
+    organizationName: "International Relief Fund",
+    organizationLogo: "https://images.unsplash.com/photo-1532629345422-7515f3d16bb6?w=200&h=200&fit=crop",
+    transparencyScore: 94,
     description: "Essential medical supplies and equipment for hospitals treating war victims",
     detailedDescription: `Yemen's healthcare system has collapsed after years of conflict, leaving hospitals without basic medical supplies. This campaign provides essential medicines, surgical equipment, and medical supplies to hospitals treating the most vulnerable patients.
 
@@ -173,6 +197,10 @@ Every $100 can provide critical care for 10 patients. In this humanitarian crisi
     id: "6",
     title: "Orphan Education Support Program",
     ngoName: "Hope for Children Foundation",
+    organizationId: "2",
+    organizationName: "Hope for Children Foundation",
+    organizationLogo: "https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?w=200&h=200&fit=crop",
+    transparencyScore: 87,
     description: "Providing school supplies, uniforms, and tutoring for 200 orphaned children",
     detailedDescription: `This program supports 200 orphaned children by ensuring they have everything needed to succeed in school. Many of these children live with extended family members who struggle financially and cannot afford educational expenses.
 
