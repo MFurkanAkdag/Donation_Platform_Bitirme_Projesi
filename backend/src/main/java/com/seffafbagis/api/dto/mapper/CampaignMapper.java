@@ -166,7 +166,7 @@ public class CampaignMapper {
                 .createdByName(entity.getCreatedBy() != null
                         ? entity.getCreatedBy().getFullName()
                         : null)
-                .createdAt(entity.getCreatedAt())
+                .createdAt(entity.getCreatedAt() != null ? entity.getCreatedAt().toLocalDateTime() : null)
                 .build();
     }
 

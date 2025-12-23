@@ -162,7 +162,7 @@ target/
 .idea/
 *.iml
 
-docs/Furkan/promptlar
+#docs/Furkan/promptlar
 
 
 # Backend test logs
