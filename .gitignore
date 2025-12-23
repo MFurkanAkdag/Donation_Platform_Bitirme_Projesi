@@ -169,3 +169,9 @@ target/
 backend/test_log.txt
 backend/test_output.txt
 backend/test_output_2.txt
+backend/build_output.txt
+backend/build_output_2.txt
+backend/build_output_3.txt
+backend/compile_output.txt
+backend/compile_output_no_mapstruct.txt
+backend/effective.xml
