@@ -11,6 +11,7 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 /**
@@ -29,42 +30,39 @@ public interface EmailLogRepository extends JpaRepository<EmailLog, UUID> {
 
     /**
      * Delete old email logs (older than specified date).
-     * 
-     * Called by scheduled cleanup job to prevent database from growing
-     * indefinitely.
-     * 
-     * @param before Timestamp threshold - deletes logs before this time
-     * @return Number of logs deleted
      */
     @Modifying
     @Transactional
     @Query("DELETE FROM EmailLog l WHERE l.createdAt < :before")
     long deleteOldLogs(@Param("before") Instant before);
 
+    @Modifying
+    @Transactional
+    void deleteBySentAtBefore(LocalDateTime before);
+
     /**
      * Count emails sent to a user.
-     * 
-     * Useful for rate limiting and tracking email sends.
-     * 
-     * @param userId User ID
-     * @return Number of emails sent to this user
      */
     @Query("SELECT COUNT(l) FROM EmailLog l WHERE l.userId = :userId")
     long countByUserId(@Param("userId") UUID userId);
 
     /**
      * Count emails of specific type sent to a user.
-     * 
-     * @param userId    User ID
-     * @param emailType Type of email (e.g., "VERIFICATION", "PASSWORD_RESET")
-     * @return Number of emails of this type sent to this user
      */
     @Query("SELECT COUNT(l) FROM EmailLog l WHERE l.userId = :userId AND l.emailType = :emailType")
     long countByUserIdAndEmailType(@Param("userId") UUID userId, @Param("emailType") String emailType);
 
     Page<EmailLog> findAllByUserId(UUID userId, Pageable pageable);
 
+    Page<EmailLog> findByUserId(UUID userId, Pageable pageable);
+
     Page<EmailLog> findAllByEmailType(String emailType, Pageable pageable);
 
+    Page<EmailLog> findByEmailType(String emailType, Pageable pageable);
+
     Page<EmailLog> findAllByStatus(String status, Pageable pageable);
+
+    Page<EmailLog> findByStatus(String status, Pageable pageable);
+
+    Page<EmailLog> findByStatusAndRetryCountLessThan(String status, int maxRetries, Pageable pageable);
 }

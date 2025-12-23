@@ -139,7 +139,7 @@ public class EmailVerificationService {
 
         // Step 6: Send welcome email
         try {
-            emailService.sendWelcomeEmail(user.getEmail(), user, user.getProfile());
+            emailService.sendWelcomeEmail(user);
             logger.info("Welcome email sent to: {}", user.getEmail());
         } catch (Exception ex) {
             logger.error("Failed to send welcome email to: {}", user.getEmail(), ex);

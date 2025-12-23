@@ -30,37 +30,48 @@ public class ConflictException extends BusinessException {
 
     /**
      * Constructor accepting resourceName, fieldName, and fieldValue.
-     * Generates message: "{resourceName} already exists with {fieldName}: {fieldValue}"
+     * Generates message: "{resourceName} already exists with {fieldName}:
+     * {fieldValue}"
      * 
      * @param resourceName Resource type name
-     * @param fieldName Field name causing conflict
-     * @param fieldValue Value that caused conflict
+     * @param fieldName    Field name causing conflict
+     * @param fieldValue   Value that caused conflict
      */
     public ConflictException(String resourceName, String fieldName, Object fieldValue) {
         super(
-            resourceName + " already exists with " + fieldName + ": " + fieldValue,
-            HttpStatus.CONFLICT,
-            "CONFLICT"
-        );
+                resourceName + " already exists with " + fieldName + ": " + fieldValue,
+                HttpStatus.CONFLICT,
+                "CONFLICT");
         this.resourceName = resourceName;
         this.fieldName = fieldName;
         this.fieldValue = fieldValue;
     }
 
     /**
+     * Simple constructor with just a message.
+     * 
+     * @param message Error message
+     */
+    public ConflictException(String message) {
+        super(message, HttpStatus.CONFLICT, "CONFLICT");
+        this.resourceName = null;
+        this.fieldName = null;
+        this.fieldValue = null;
+    }
+
+    /**
      * Constructor with custom error code.
      * 
      * @param resourceName Resource type name
-     * @param fieldName Field name causing conflict
-     * @param fieldValue Value that caused conflict
-     * @param errorCode Machine-readable error code
+     * @param fieldName    Field name causing conflict
+     * @param fieldValue   Value that caused conflict
+     * @param errorCode    Machine-readable error code
      */
     public ConflictException(String resourceName, String fieldName, Object fieldValue, String errorCode) {
         super(
-            resourceName + " already exists with " + fieldName + ": " + fieldValue,
-            HttpStatus.CONFLICT,
-            errorCode
-        );
+                resourceName + " already exists with " + fieldName + ": " + fieldValue,
+                HttpStatus.CONFLICT,
+                errorCode);
         this.resourceName = resourceName;
         this.fieldName = fieldName;
         this.fieldValue = fieldValue;

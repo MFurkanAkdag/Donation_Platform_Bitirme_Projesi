@@ -42,6 +42,8 @@ public class AsyncConfig implements AsyncConfigurer {
      * Logs exceptions without breaking the flow.
      */
     private static class AsyncExceptionHandler implements AsyncUncaughtExceptionHandler {
+        private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AsyncExceptionHandler.class);
+
         @Override
         public void handleUncaughtException(Throwable throwable, Method method, Object... objects) {
             log.error("Async exception in method {}: {}", method.getName(), throwable.getMessage(), throwable);

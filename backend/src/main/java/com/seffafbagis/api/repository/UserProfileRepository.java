@@ -7,7 +7,15 @@ import org.springframework.stereotype.Repository;
 import java.util.Optional;
 import java.util.UUID;
 
+/**
+ * Repository for UserProfile entity.
+ */
 @Repository
 public interface UserProfileRepository extends JpaRepository<UserProfile, UUID> {
+
     Optional<UserProfile> findByUserId(UUID userId);
+
+    boolean existsByUserId(UUID userId);
+
+    void deleteByUserId(UUID userId);
 }

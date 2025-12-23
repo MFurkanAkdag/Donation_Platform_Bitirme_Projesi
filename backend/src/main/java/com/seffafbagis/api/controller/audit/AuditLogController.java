@@ -2,7 +2,7 @@ package com.seffafbagis.api.controller.audit;
 
 import com.seffafbagis.api.dto.response.audit.AuditLogListResponse;
 import com.seffafbagis.api.dto.response.audit.AuditLogResponse;
-import com.seffafbagis.api.dto.response.audit.EmailLogResponse;
+import com.seffafbagis.api.dto.response.notification.EmailLogResponse;
 import com.seffafbagis.api.dto.response.audit.LoginHistoryResponse;
 import com.seffafbagis.api.dto.response.common.PageResponse;
 import com.seffafbagis.api.service.audit.AuditLogService;

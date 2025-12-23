@@ -163,7 +163,7 @@ target/
 *.iml
 
 docs/Furkan/promptlar
-docs
+
 
 # Backend test logs
 backend/test_log.txt

@@ -45,7 +45,9 @@ public class AdminReportController {
     @Operation(summary = "List reports by priority")
     public ResponseEntity<PageResponse<ReportResponse>> getReportsByPriority(
             @PathVariable String priority, Pageable pageable) {
-        return ResponseEntity.ok(adminReportService.getReportsByPriority(priority, pageable));
+        com.seffafbagis.api.enums.ReportPriority priorityEnum = com.seffafbagis.api.enums.ReportPriority
+                .valueOf(priority.toUpperCase());
+        return ResponseEntity.ok(adminReportService.getReportsByPriority(priorityEnum, pageable));
     }
 
     @GetMapping("/{id}")

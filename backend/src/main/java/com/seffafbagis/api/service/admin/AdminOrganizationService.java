@@ -97,7 +97,7 @@ public class AdminOrganizationService {
         response.setId(org.getId());
         response.setName(org.getName());
         response.setDescription(org.getDescription());
-        response.setVerificationStatus(org.getVerificationStatus());
+        response.setVerificationStatus(org.getVerificationStatus() != null ? org.getVerificationStatus().name() : null);
         response.setRejectionReason(org.getRejectionReason());
         response.setVerifiedAt(org.getVerifiedAt());
         response.setCreatedAt(org.getCreatedAt());

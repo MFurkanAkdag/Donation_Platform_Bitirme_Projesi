@@ -6,7 +6,8 @@ import com.seffafbagis.api.entity.user.User;
 import com.seffafbagis.api.repository.LoginHistoryRepository;
 import com.seffafbagis.api.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -20,8 +21,9 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
-@Slf4j
 public class LoginHistoryService {
+
+    private static final Logger logger = LoggerFactory.getLogger(LoginHistoryService.class);
 
     private final LoginHistoryRepository loginHistoryRepository;
     private final UserRepository userRepository;
@@ -38,7 +40,7 @@ public class LoginHistoryService {
             history.setUserAgent(userAgent);
             history.setDeviceType(detectDeviceType(userAgent));
             history.setFailureReason(failureReason);
-            
+
             // Detect geolocation from IP (GeoIP integration ready for future enhancement)
             String[] geolocation = detectGeolocation(ipAddress);
             history.setLocationCountry(geolocation[0]);
@@ -46,7 +48,7 @@ public class LoginHistoryService {
 
             loginHistoryRepository.save(history);
         } catch (Exception e) {
-            log.error("Failed to record login history for user {}: {}", userId, e.getMessage());
+            logger.error("Failed to record login history for user {}: {}", userId, e.getMessage());
         }
     }
 
@@ -113,14 +115,14 @@ public class LoginHistoryService {
         // Placeholder for future GeoIP integration
         // Example implementation when GeoIP service is available:
         // try {
-        //     GeoLocation location = geoIPService.lookup(ipAddress);
-        //     return new String[]{location.getCountry(), location.getCity()};
+        // GeoLocation location = geoIPService.lookup(ipAddress);
+        // return new String[]{location.getCountry(), location.getCity()};
         // } catch (Exception e) {
-        //     log.debug("GeoIP lookup failed for IP: {}", ipAddress);
-        //     return new String[]{null, null};
+        // log.debug("GeoIP lookup failed for IP: {}", ipAddress);
+        // return new String[]{null, null};
         // }
-        
+
         // For now, return null values
-        return new String[]{null, null};
+        return new String[] { null, null };
     }
 }

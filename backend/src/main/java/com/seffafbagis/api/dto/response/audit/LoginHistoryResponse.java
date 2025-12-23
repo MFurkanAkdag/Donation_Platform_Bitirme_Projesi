@@ -11,8 +11,8 @@ import java.util.UUID;
 
 @Data
 @Builder
-@NoArgsConstructor
 @AllArgsConstructor
+@NoArgsConstructor
 public class LoginHistoryResponse {
     private UUID id;
     private UUID userId;

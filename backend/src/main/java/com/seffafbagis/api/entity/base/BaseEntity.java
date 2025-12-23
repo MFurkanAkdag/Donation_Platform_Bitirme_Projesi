@@ -6,6 +6,8 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.MappedSuperclass;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -32,11 +34,14 @@ public abstract class BaseEntity implements Serializable {
     protected UUID id;
 
     @CreatedDate
-    @Column(name = "created_at", nullable = false, updatable = false, columnDefinition = "TIMESTAMPTZ")
+    @Column(name = "created_at", nullable = false, updatable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
     protected OffsetDateTime createdAt;
 
+    /**
+     * Kayıt güncellenme zamanı.
+     */
     @LastModifiedDate
-    @Column(name = "updated_at", columnDefinition = "TIMESTAMPTZ")
+    @Column(name = "updated_at", columnDefinition = "TIMESTAMP WITH TIME ZONE")
     protected OffsetDateTime updatedAt;
 
     public UUID getId() {
@@ -51,7 +56,7 @@ public abstract class BaseEntity implements Serializable {
         return updatedAt;
     }
 
-    protected void setId(UUID id) {
+    public void setId(UUID id) {
         this.id = id;
     }
 

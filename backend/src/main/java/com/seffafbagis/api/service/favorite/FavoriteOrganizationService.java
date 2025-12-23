@@ -31,8 +31,10 @@ public class FavoriteOrganizationService {
 
     /**
      * Retrieves all favorite organizations for a user
+     * 
      * @param userId The user ID
-     * @return List of favorite organizations sorted by most recently favorited first
+     * @return List of favorite organizations sorted by most recently favorited
+     *         first
      */
     public List<FavoriteOrganizationResponse> getUserFavorites(UUID userId) {
         List<FavoriteOrganization> favorites = favoriteOrganizationRepository.findAllByUserId(userId);
@@ -100,27 +102,30 @@ public class FavoriteOrganizationService {
     }
 
     /**
-     * Builds a FavoriteOrganizationResponse from a FavoriteOrganization entity and organization details
+     * Builds a FavoriteOrganizationResponse from a FavoriteOrganization entity and
+     * organization details
      * 
-     * Note: OrganizationResponse currently provides basic information (id, name, description, verificationStatus).
-     * For complete data (logo, activeCampaignsCount, totalRaised), wait for Organization module enhancement.
+     * Note: OrganizationResponse currently provides basic information (id, name,
+     * description, verificationStatus).
+     * For complete data (logo, activeCampaignsCount, totalRaised), wait for
+     * Organization module enhancement.
      * Using placeholder values (null, 0) for now to maintain API contract.
      * 
      * @param favorite The FavoriteOrganization entity
-     * @param org The OrganizationResponse DTO
+     * @param org      The OrganizationResponse DTO
      * @return FavoriteOrganizationResponse with available data
      */
-    private FavoriteOrganizationResponse buildFavoriteResponse(FavoriteOrganization favorite, 
+    private FavoriteOrganizationResponse buildFavoriteResponse(FavoriteOrganization favorite,
             OrganizationResponse org) {
         return FavoriteOrganizationResponse.fromEntity(
                 favorite,
                 org.getId(),
                 org.getName(),
-                org.getLogo() != null ? org.getLogo() : null,           // Will be available in future
+                org.getLogo() != null ? org.getLogo() : null, // Will be available in future
                 org.getDescription(),
-                org.getVerificationStatus(),
-                org.getActiveCampaignsCount() != null ? org.getActiveCampaignsCount() : 0,  // Will be dynamic
-                org.getTotalRaised() != null ? org.getTotalRaised() : BigDecimal.ZERO       // Will be dynamic
+                org.getVerificationStatus() != null ? org.getVerificationStatus().name() : null,
+                org.getActiveCampaignsCount() != null ? org.getActiveCampaignsCount() : 0, // Will be dynamic
+                org.getTotalRaised() != null ? org.getTotalRaised() : BigDecimal.ZERO // Will be dynamic
         );
     }
 }

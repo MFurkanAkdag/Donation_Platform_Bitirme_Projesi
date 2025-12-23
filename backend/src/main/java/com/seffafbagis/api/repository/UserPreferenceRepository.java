@@ -7,7 +7,15 @@ import org.springframework.stereotype.Repository;
 import java.util.Optional;
 import java.util.UUID;
 
+/**
+ * Repository for UserPreference entity.
+ */
 @Repository
 public interface UserPreferenceRepository extends JpaRepository<UserPreference, UUID> {
+
     Optional<UserPreference> findByUserId(UUID userId);
+
+    boolean existsByUserId(UUID userId);
+
+    void deleteByUserId(UUID userId);
 }

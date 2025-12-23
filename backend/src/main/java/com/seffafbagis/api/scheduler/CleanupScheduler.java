@@ -14,7 +14,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
-import java.time.temporal.ChronoUnit;
 
 @Component
 @Slf4j
@@ -40,7 +39,7 @@ public class CleanupScheduler {
             // 1. Delete expired refresh tokens (7 days buffer from expiry shouldn't be
             // needed if already expired, but prompt says < now - 7 days)
             // Wait, "expires_at < now - 7 days" means expired for more than 7 days.
-            Instant validUntil = Instant.now().minus(7, ChronoUnit.DAYS);
+            OffsetDateTime validUntil = OffsetDateTime.now().minusDays(7);
             long deletedRefreshTokens = refreshTokenRepository.deleteExpiredTokens(validUntil);
             log.info("Deleted {} old refresh tokens", deletedRefreshTokens);
 

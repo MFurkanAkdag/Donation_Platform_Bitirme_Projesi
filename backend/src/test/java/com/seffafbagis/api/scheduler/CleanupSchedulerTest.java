@@ -49,7 +49,7 @@ class CleanupSchedulerTest {
     void performCleanup_ShouldDeleteExpiredData() {
         scheduler.performCleanup();
 
-        verify(refreshTokenRepository).deleteExpiredTokens(any(Instant.class));
+        verify(refreshTokenRepository).deleteExpiredTokens(any(OffsetDateTime.class));
         verify(passwordResetTokenRepository).deleteExpiredTokens(any(Instant.class));
         verify(notificationRepository).deleteByIsReadTrueAndCreatedAtBefore(any(OffsetDateTime.class));
         verify(emailLogRepository).deleteBySentAtBefore(any(LocalDateTime.class));

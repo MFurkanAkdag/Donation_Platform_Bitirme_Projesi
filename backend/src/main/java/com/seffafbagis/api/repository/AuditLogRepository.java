@@ -11,21 +11,32 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
+import java.time.OffsetDateTime;
 import java.util.UUID;
 
+/**
+ * Repository for AuditLog entity.
+ */
 @Repository
 public interface AuditLogRepository extends JpaRepository<AuditLog, UUID> {
 
+    Page<AuditLog> findAllByUserIdOrderByCreatedAtDesc(UUID userId, Pageable pageable);
+
     Page<AuditLog> findAllByUserId(UUID userId, Pageable pageable);
+
+    Page<AuditLog> findAllByActionOrderByCreatedAtDesc(String action, Pageable pageable);
+
+    Page<AuditLog> findAllByEntityTypeAndEntityIdOrderByCreatedAtDesc(String entityType, UUID entityId,
+            Pageable pageable);
 
     Page<AuditLog> findAllByEntityTypeAndEntityId(String entityType, UUID entityId, Pageable pageable);
 
-    Page<AuditLog> findAllByAction(String action, Pageable pageable);
-
-    Page<AuditLog> findAllByCreatedAtBetween(Instant start, Instant end, Pageable pageable);
+    @Modifying
+    @Transactional
+    @Query("DELETE FROM AuditLog a WHERE a.createdAt < :before")
+    int deleteOldLogs(@Param("before") OffsetDateTime before);
 
     @Modifying
     @Transactional
-    @Query("DELETE FROM AuditLog a WHERE a.createdAt < :cutoff")
-    long deleteAllByCreatedAtBefore(@Param("cutoff") Instant cutoff);
+    long deleteAllByCreatedAtBefore(Instant before);
 }

@@ -102,7 +102,7 @@ public class UserService {
         // Audit log would ideally be created here via an AuditService/Event
     }
 
-    private User getUserById(UUID userId) {
+    public User getUserById(UUID userId) {
         return userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", userId.toString()));
     }

@@ -16,7 +16,7 @@ import java.util.UUID;
 public class EmailLogResponse {
     private UUID id;
     private UUID userId;
-    private String emailTo; // Maps to recipientEmail
+    private String emailTo;
     private String emailType;
     private String subject;
     private String status;
@@ -33,8 +33,8 @@ public class EmailLogResponse {
         }
         return EmailLogResponse.builder()
                 .id(emailLog.getId())
-                .userId(emailLog.getUserId())
-                .emailTo(emailLog.getRecipientEmail())
+                .userId(emailLog.getUser() != null ? emailLog.getUser().getId() : null)
+                .emailTo(emailLog.getEmailTo())
                 .emailType(emailLog.getEmailType())
                 .subject(emailLog.getSubject())
                 .status(emailLog.getStatus())
@@ -43,7 +43,7 @@ public class EmailLogResponse {
                 .providerMessageId(emailLog.getProviderMessageId())
                 .errorMessage(emailLog.getErrorMessage())
                 .retryCount(emailLog.getRetryCount())
-                .sentAt(emailLog.getSentAt())
+                .sentAt(emailLog.getSentAt() != null ? emailLog.getSentAt().toInstant(java.time.ZoneOffset.UTC) : null)
                 .build();
     }
 }

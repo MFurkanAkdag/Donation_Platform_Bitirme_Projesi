@@ -7,6 +7,8 @@ import com.seffafbagis.api.dto.response.admin.AdminOrganizationResponse.AdminUse
 import com.seffafbagis.api.dto.response.common.PageResponse;
 import com.seffafbagis.api.entity.report.Report;
 import com.seffafbagis.api.entity.user.User;
+import com.seffafbagis.api.enums.ReportPriority;
+import com.seffafbagis.api.enums.ReportStatus;
 import com.seffafbagis.api.enums.UserRole;
 import com.seffafbagis.api.exception.ResourceNotFoundException;
 import com.seffafbagis.api.exception.ValidationException;
@@ -18,7 +20,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
@@ -51,14 +53,15 @@ public class AdminReportService {
     }
 
     public PageResponse<ReportResponse> getPendingReports(Pageable pageable) {
-        Page<Report> reports = reportRepository.findByStatusIn(Arrays.asList("PENDING", "ASSIGNED"), pageable);
+        Page<Report> reports = reportRepository.findByStatusIn(
+                Arrays.asList(ReportStatus.PENDING, ReportStatus.IN_REVIEW), pageable);
         List<ReportResponse> content = reports.getContent().stream()
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
         return PageResponse.of(content, reports);
     }
 
-    public PageResponse<ReportResponse> getReportsByPriority(String priority, Pageable pageable) {
+    public PageResponse<ReportResponse> getReportsByPriority(ReportPriority priority, Pageable pageable) {
         Page<Report> reports = reportRepository.findByPriority(priority, pageable);
         List<ReportResponse> content = reports.getContent().stream()
                 .map(this::mapToResponse)
@@ -81,24 +84,20 @@ public class AdminReportService {
                         "Assignee not found"));
 
         if (!assignee.getRole().equals(UserRole.ADMIN)) {
-            // Check if UserRole is correct enum. Assuming UserRole has ADMIN.
-            // If stricter check needed:
-            // throw new ValidationException("Assignee must be an admin");
+            throw new ValidationException("Assignee must be an admin");
         }
 
         report.setAssignedTo(assignee);
-        report.setAssignedAt(LocalDateTime.now());
+        report.setAssignedAt(OffsetDateTime.now());
         if (request.getPriority() != null) {
-            report.setPriority(request.getPriority());
+            report.setPriority(ReportPriority.valueOf(request.getPriority().toUpperCase()));
         }
-        report.setStatus("ASSIGNED");
+        report.setStatus(ReportStatus.IN_REVIEW);
 
         reportRepository.save(report);
 
         auditLogService.logAction(adminId, "ASSIGN_REPORT",
                 "Assigned report " + id + " to " + assignee.getEmail(), id.toString());
-
-        // Notify assignee logic...
 
         return mapToResponse(report);
     }
@@ -110,11 +109,10 @@ public class AdminReportService {
         User admin = userRepository.findById(adminId)
                 .orElseThrow(() -> new ResourceNotFoundException("User", adminId.toString(), "Admin not found"));
 
-        report.setResolution(request.getResolution());
         report.setResolutionNotes(request.getResolutionNotes());
         report.setResolvedBy(admin);
-        report.setResolvedAt(LocalDateTime.now());
-        report.setStatus(request.getResolution());
+        report.setResolvedAt(OffsetDateTime.now());
+        report.setStatus(ReportStatus.valueOf(request.getResolution().toUpperCase()));
 
         reportRepository.save(report);
 
@@ -128,22 +126,18 @@ public class AdminReportService {
         return mapToResponse(report);
     }
 
-    // Statistics method placeholder
-    // public ReportStatistics getReportStatistics() { ... }
-
     private ReportResponse mapToResponse(Report report) {
         ReportResponse response = new ReportResponse();
         response.setId(report.getId());
         response.setReporterId(report.getReporter().getId());
         response.setReporterEmail(report.getReporter().getEmail());
-        response.setReportType(report.getReportType());
-        response.setTargetType(report.getTargetType());
-        response.setTargetId(report.getTargetId());
-        response.setTargetName(report.getTargetName());
+        response.setReportType(report.getReportType() != null ? report.getReportType().name() : null);
+        response.setTargetType(report.getEntityType() != null ? report.getEntityType().name() : null);
+        response.setTargetId(report.getEntityId());
         response.setReason(report.getReason());
         response.setDescription(report.getDescription());
-        response.setStatus(report.getStatus());
-        response.setPriority(report.getPriority());
+        response.setStatus(report.getStatus() != null ? report.getStatus().name() : null);
+        response.setPriority(report.getPriority() != null ? report.getPriority().name() : null);
 
         if (report.getAssignedTo() != null) {
             response.setAssignedTo(new AdminUserSummary(
@@ -152,9 +146,8 @@ public class AdminReportService {
                     report.getAssignedTo().getProfile() != null ? report.getAssignedTo().getProfile().getDisplayName()
                             : null));
         }
-        response.setAssignedAt(report.getAssignedAt());
+        response.setAssignedAt(report.getAssignedAt() != null ? report.getAssignedAt().toLocalDateTime() : null);
 
-        response.setResolution(report.getResolution());
         response.setResolutionNotes(report.getResolutionNotes());
 
         if (report.getResolvedBy() != null) {
@@ -164,8 +157,8 @@ public class AdminReportService {
                     report.getResolvedBy().getProfile() != null ? report.getResolvedBy().getProfile().getDisplayName()
                             : null));
         }
-        response.setResolvedAt(report.getResolvedAt());
-        response.setCreatedAt(report.getCreatedAt().toLocalDateTime());
+        response.setResolvedAt(report.getResolvedAt() != null ? report.getResolvedAt().toLocalDateTime() : null);
+        response.setCreatedAt(report.getCreatedAt() != null ? report.getCreatedAt().toLocalDateTime() : null);
 
         return response;
     }

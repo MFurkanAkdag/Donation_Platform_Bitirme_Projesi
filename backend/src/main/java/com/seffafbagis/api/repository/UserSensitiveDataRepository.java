@@ -7,7 +7,15 @@ import org.springframework.stereotype.Repository;
 import java.util.Optional;
 import java.util.UUID;
 
+/**
+ * Repository for UserSensitiveData entity.
+ */
 @Repository
 public interface UserSensitiveDataRepository extends JpaRepository<UserSensitiveData, UUID> {
+
     Optional<UserSensitiveData> findByUserId(UUID userId);
+
+    boolean existsByUserId(UUID userId);
+
+    void deleteByUserId(UUID userId);
 }
