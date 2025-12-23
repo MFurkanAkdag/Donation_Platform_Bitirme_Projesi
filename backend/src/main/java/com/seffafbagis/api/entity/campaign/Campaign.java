@@ -3,7 +3,11 @@ package com.seffafbagis.api.entity.campaign;
 import com.seffafbagis.api.entity.base.BaseEntity;
 import com.seffafbagis.api.entity.organization.Organization;
 import com.seffafbagis.api.enums.CampaignStatus;
+
+import jakarta.annotation.Generated;
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -12,6 +16,8 @@ import java.time.LocalDateTime;
  * Represents a fundraising campaign.
  */
 @Entity
+@Getter
+@Setter
 @Table(name = "campaigns", indexes = {
         @Index(name = "idx_campaigns_slug", columnList = "slug", unique = true),
         @Index(name = "idx_campaigns_organization", columnList = "organization_id"),
@@ -80,157 +86,28 @@ public class Campaign extends BaseEntity {
     @JoinColumn(name = "created_by")
     private com.seffafbagis.api.entity.user.User createdBy;
 
-    // Getters and Setters
+    @Column(name = "extension_count")
+    private Integer extensionCount = 0;
 
-    public Organization getOrganization() {
-        return organization;
-    }
+    @Column(columnDefinition = "TEXT")
+    private String summary;
 
-    public void setOrganization(Organization organization) {
-        this.organization = organization;
-    }
+    @Column(name = "beneficiary_count")
+    private Integer beneficiaryCount;
 
-    public String getTitle() {
-        return title;
-    }
+    @Column(name = "location_city")
+    private String locationCity;
 
-    public void setTitle(String title) {
-        this.title = title;
-    }
+    @Column(name = "location_district")
+    private String locationDistrict;
 
-    public String getSlug() {
-        return slug;
-    }
+    @Column(length = 3)
+    private String currency = "TRY";
 
-    public void setSlug(String slug) {
-        this.slug = slug;
-    }
+    @OneToMany(mappedBy = "campaign", cascade = CascadeType.ALL, orphanRemoval = true)
+    private java.util.List<CampaignCategory> categories;
 
-    public String getDescription() {
-        return description;
-    }
+    @OneToMany(mappedBy = "campaign", cascade = CascadeType.ALL, orphanRemoval = true)
+    private java.util.List<CampaignDonationType> donationTypes;
 
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public String getShortDescription() {
-        return shortDescription;
-    }
-
-    public void setShortDescription(String shortDescription) {
-        this.shortDescription = shortDescription;
-    }
-
-    public BigDecimal getTargetAmount() {
-        return targetAmount;
-    }
-
-    public void setTargetAmount(BigDecimal targetAmount) {
-        this.targetAmount = targetAmount;
-    }
-
-    public BigDecimal getCollectedAmount() {
-        return collectedAmount;
-    }
-
-    public void setCollectedAmount(BigDecimal collectedAmount) {
-        this.collectedAmount = collectedAmount;
-    }
-
-    public Integer getDonorCount() {
-        return donorCount;
-    }
-
-    public void setDonorCount(Integer donorCount) {
-        this.donorCount = donorCount;
-    }
-
-    public CampaignStatus getStatus() {
-        return status;
-    }
-
-    public void setStatus(CampaignStatus status) {
-        this.status = status;
-    }
-
-    public LocalDateTime getStartDate() {
-        return startDate;
-    }
-
-    public void setStartDate(LocalDateTime startDate) {
-        this.startDate = startDate;
-    }
-
-    public LocalDateTime getEndDate() {
-        return endDate;
-    }
-
-    public void setEndDate(LocalDateTime endDate) {
-        this.endDate = endDate;
-    }
-
-    public LocalDateTime getCompletedAt() {
-        return completedAt;
-    }
-
-    public void setCompletedAt(LocalDateTime completedAt) {
-        this.completedAt = completedAt;
-    }
-
-    public String getCoverImageUrl() {
-        return coverImageUrl;
-    }
-
-    public void setCoverImageUrl(String coverImageUrl) {
-        this.coverImageUrl = coverImageUrl;
-    }
-
-    public Boolean getIsFeatured() {
-        return isFeatured;
-    }
-
-    public void setIsFeatured(Boolean isFeatured) {
-        this.isFeatured = isFeatured;
-    }
-
-    public Boolean getIsUrgent() {
-        return isUrgent;
-    }
-
-    public void setIsUrgent(Boolean isUrgent) {
-        this.isUrgent = isUrgent;
-    }
-
-    public Integer getEvidenceDeadlineDays() {
-        return evidenceDeadlineDays;
-    }
-
-    public void setEvidenceDeadlineDays(Integer evidenceDeadlineDays) {
-        this.evidenceDeadlineDays = evidenceDeadlineDays;
-    }
-
-    public LocalDateTime getApprovedAt() {
-        return approvedAt;
-    }
-
-    public void setApprovedAt(LocalDateTime approvedAt) {
-        this.approvedAt = approvedAt;
-    }
-
-    public com.seffafbagis.api.entity.user.User getApprovedBy() {
-        return approvedBy;
-    }
-
-    public void setApprovedBy(com.seffafbagis.api.entity.user.User approvedBy) {
-        this.approvedBy = approvedBy;
-    }
-
-    public com.seffafbagis.api.entity.user.User getCreatedBy() {
-        return createdBy;
-    }
-
-    public void setCreatedBy(com.seffafbagis.api.entity.user.User createdBy) {
-        this.createdBy = createdBy;
-    }
 }

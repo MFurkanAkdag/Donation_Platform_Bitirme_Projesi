@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.OffsetDateTime;
+
 import java.util.List;
 import java.util.UUID;
 
@@ -40,7 +40,7 @@ public class OrganizationDetailResponse {
     private LocalDateTime verifiedAt;
     private String rejectionReason;
     private Integer resubmissionCount;
-    private OffsetDateTime lastResubmissionAt;
+    private LocalDateTime lastResubmissionAt;
     private Boolean isFeatured;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

@@ -7,6 +7,10 @@ import java.util.UUID;
 /**
  * DTO for campaign list response.
  */
+@lombok.Data
+@lombok.Builder
+@lombok.NoArgsConstructor
+@lombok.AllArgsConstructor
 public class CampaignListResponse {
 
     private UUID id;
@@ -16,10 +20,15 @@ public class CampaignListResponse {
     private String coverImageUrl;
     private BigDecimal targetAmount;
     private BigDecimal collectedAmount;
+    private BigDecimal progressPercentage;
     private Integer donorCount;
     private String status;
     private LocalDateTime endDate;
+    private Long daysRemaining;
+    private Boolean isUrgent;
+    private Boolean isFeatured;
     private String organizationName;
+    private String organizationLogo;
     private UUID organizationId;
 
     // Getters and Setters

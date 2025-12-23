@@ -6,6 +6,8 @@ import com.seffafbagis.api.entity.category.DonationType;
 import com.seffafbagis.api.entity.organization.Organization;
 import com.seffafbagis.api.entity.user.User;
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -15,6 +17,8 @@ import java.time.LocalDate;
  * Allows donors to make repeated donations on a schedule.
  */
 @Entity
+@Getter
+@Setter
 @Table(name = "recurring_donations", indexes = {
         @Index(name = "idx_recurring_donor", columnList = "donor_id"),
         @Index(name = "idx_recurring_status", columnList = "status"),
@@ -71,125 +75,4 @@ public class RecurringDonation extends BaseEntity {
     @Column(name = "last_error_message", columnDefinition = "TEXT")
     private String lastErrorMessage;
 
-    // Getters and Setters
-
-    public User getDonor() {
-        return donor;
-    }
-
-    public void setDonor(User donor) {
-        this.donor = donor;
-    }
-
-    public Campaign getCampaign() {
-        return campaign;
-    }
-
-    public void setCampaign(Campaign campaign) {
-        this.campaign = campaign;
-    }
-
-    public Organization getOrganization() {
-        return organization;
-    }
-
-    public void setOrganization(Organization organization) {
-        this.organization = organization;
-    }
-
-    public DonationType getDonationType() {
-        return donationType;
-    }
-
-    public void setDonationType(DonationType donationType) {
-        this.donationType = donationType;
-    }
-
-    public BigDecimal getAmount() {
-        return amount;
-    }
-
-    public void setAmount(BigDecimal amount) {
-        this.amount = amount;
-    }
-
-    public String getCurrency() {
-        return currency;
-    }
-
-    public void setCurrency(String currency) {
-        this.currency = currency;
-    }
-
-    public String getFrequency() {
-        return frequency;
-    }
-
-    public void setFrequency(String frequency) {
-        this.frequency = frequency;
-    }
-
-    public LocalDate getNextPaymentDate() {
-        return nextPaymentDate;
-    }
-
-    public void setNextPaymentDate(LocalDate nextPaymentDate) {
-        this.nextPaymentDate = nextPaymentDate;
-    }
-
-    public LocalDate getLastPaymentDate() {
-        return lastPaymentDate;
-    }
-
-    public void setLastPaymentDate(LocalDate lastPaymentDate) {
-        this.lastPaymentDate = lastPaymentDate;
-    }
-
-    public BigDecimal getTotalDonated() {
-        return totalDonated;
-    }
-
-    public void setTotalDonated(BigDecimal totalDonated) {
-        this.totalDonated = totalDonated;
-    }
-
-    public Integer getPaymentCount() {
-        return paymentCount;
-    }
-
-    public void setPaymentCount(Integer paymentCount) {
-        this.paymentCount = paymentCount;
-    }
-
-    public String getStatus() {
-        return status;
-    }
-
-    public void setStatus(String status) {
-        this.status = status;
-    }
-
-    public String getCardToken() {
-        return cardToken;
-    }
-
-    public void setCardToken(String cardToken) {
-        this.cardToken = cardToken;
-    }
-
-    public Integer getFailureCount() {
-        return failureCount;
-    }
-
-    public void setFailureCount(Integer failureCount) {
-        this.failureCount = failureCount;
-    }
-
-    public String getLastErrorMessage() {
-        return lastErrorMessage;
-    }
-
-    public void setLastErrorMessage(String lastErrorMessage) {
-        this.lastErrorMessage = lastErrorMessage;
-    }
 }

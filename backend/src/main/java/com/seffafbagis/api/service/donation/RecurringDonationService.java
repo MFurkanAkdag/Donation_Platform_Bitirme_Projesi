@@ -277,12 +277,11 @@ public class RecurringDonationService {
                 .currency(donation.getCurrency())
                 .frequency(donation.getFrequency())
                 .nextPaymentDate(donation.getNextPaymentDate())
-                .lastPaymentDate(
-                        donation.getLastPaymentDate() != null ? donation.getLastPaymentDate().atStartOfDay() : null)
+                .lastPaymentDate(donation.getLastPaymentDate())
                 .totalDonated(donation.getTotalDonated())
                 .paymentCount(donation.getPaymentCount())
                 .status(donation.getStatus())
-                .createdAt(donation.getCreatedAt().toLocalDateTime())
+                .createdAt(donation.getCreatedAt())
                 .build();
     }
 }

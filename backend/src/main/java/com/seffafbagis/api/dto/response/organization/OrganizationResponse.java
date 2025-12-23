@@ -47,4 +47,8 @@ public class OrganizationResponse {
     public String getLogo() {
         return logoUrl;
     }
+
+    public void setLogo(String logo) {
+        this.logoUrl = logo;
+    }
 }

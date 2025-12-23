@@ -15,7 +15,7 @@ import com.seffafbagis.api.repository.CampaignRepository;
 import com.seffafbagis.api.repository.OrganizationRepository;
 import com.seffafbagis.api.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.MessageSource;
+
 import org.springframework.stereotype.Component;
 
 import java.util.UUID;
@@ -27,7 +27,6 @@ public class ReportMapper {
     private final CampaignRepository campaignRepository;
     private final OrganizationRepository organizationRepository;
     private final UserRepository userRepository;
-    private final MessageSource messageSource;
 
     public Report toEntity(CreateReportRequest request, User reporter) {
         Report report = new Report();
@@ -123,9 +122,12 @@ public class ReportMapper {
     private String getStatusName(ReportStatus status) {
         return switch (status) {
             case PENDING -> "Beklemede";
+            case IN_REVIEW -> "İncelemede";
             case INVESTIGATING -> "İnceleniyor";
             case RESOLVED -> "Çözüldü";
             case DISMISSED -> "Reddedildi";
+            case REJECTED -> "Reddedildi";
+            case CLOSED -> "Kapatıldı";
         };
     }
 

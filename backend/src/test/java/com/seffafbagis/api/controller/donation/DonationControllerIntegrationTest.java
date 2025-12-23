@@ -58,7 +58,7 @@ public class DonationControllerIntegrationTest {
         CreateDonationRequest request = new CreateDonationRequest();
         request.setCampaignId(campaignId);
         request.setAmount(BigDecimal.valueOf(100));
-        request.setCurrency("TRY");
+
         request.setDonorDisplayName("Test Donor");
 
         when(donationService.createDonation(any(CreateDonationRequest.class))).thenReturn(UUID.randomUUID());
@@ -78,7 +78,6 @@ public class DonationControllerIntegrationTest {
         request.setCampaignId(campaignId);
         // Minimal amount is 1.00 as per DTO validation
         request.setAmount(BigDecimal.valueOf(0.5));
-        request.setCurrency("TRY");
 
         mockMvc.perform(post("/api/v1/donations")
                 .with(csrf())

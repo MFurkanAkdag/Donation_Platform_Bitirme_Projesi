@@ -10,8 +10,6 @@ import com.seffafbagis.api.entity.user.User;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Component;
 
-import java.time.LocalDateTime;
-
 @Component
 public class DonationMapper {
 
@@ -91,7 +89,7 @@ public class DonationMapper {
         response.setId(receipt.getId());
         response.setDonationId(receipt.getDonation().getId());
         response.setReceiptNumber(receipt.getReceiptNumber());
-        response.setIssuedAt(receipt.getIssuedAt() != null ? receipt.getIssuedAt().toLocalDateTime() : null);
+        response.setGeneratedAt(receipt.getIssuedAt());
 
         // Map redundant fields from receipt if they exist, or fetch from
         // donation/relations
@@ -108,7 +106,7 @@ public class DonationMapper {
         response.setCampaignTitle(donation.getCampaign().getTitle());
         response.setOrganizationName(donation.getCampaign().getOrganization().getLegalName());
         response.setAmount(donation.getAmount());
-        response.setDonationDate(donation.getCreatedAt().toLocalDateTime());
+        response.setDonationDate(donation.getCreatedAt());
 
         return response;
     }
@@ -126,7 +124,7 @@ public class DonationMapper {
 
         response.setAmount(donation.getAmount());
         response.setCurrency(donation.getCurrency());
-        response.setStatus(donation.getStatus());
+        response.setStatus(donation.getStatus().name());
         response.setIsAnonymous(donation.getIsAnonymous());
         response.setDonorMessage(donation.getDonorMessage());
 
@@ -136,6 +134,6 @@ public class DonationMapper {
             response.setDonorDisplayName(donation.getDonorDisplayName());
         }
 
-        response.setCreatedAt(donation.getCreatedAt().toLocalDateTime());
+        response.setCreatedAt(donation.getCreatedAt());
     }
 }

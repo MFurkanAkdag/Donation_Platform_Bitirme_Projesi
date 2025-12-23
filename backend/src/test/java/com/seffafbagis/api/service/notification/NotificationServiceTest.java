@@ -79,7 +79,7 @@ class NotificationServiceTest {
             notification.setId(UUID.randomUUID());
             notification.setTitle("Title");
             notification.setMessage("Message");
-            notification.setType(NotificationType.SYSTEM);
+            notification.setType(NotificationType.SYSTEM.name());
             ReflectionTestUtils.setField(notification, "createdAt", OffsetDateTime.now());
             notification.setRead(false);
 
@@ -107,10 +107,10 @@ class NotificationServiceTest {
         verify(notificationRepository).save(notificationCaptor.capture());
 
         Notification savedNotification = notificationCaptor.getValue();
-        assertEquals(userId, savedNotification.getUser().getId());
+        assertEquals(userId, savedNotification.getUserId());
         assertEquals("Test Title", savedNotification.getTitle());
         assertEquals("Test Message", savedNotification.getMessage());
-        assertEquals(NotificationType.SYSTEM, savedNotification.getType());
+        assertEquals(NotificationType.SYSTEM.name(), savedNotification.getType());
     }
 
     @Test
