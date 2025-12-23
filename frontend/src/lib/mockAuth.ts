@@ -22,6 +22,16 @@ const mockAdminUser: User = {
   avatarUrl: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face',
 };
 
+// Foundation test account
+const mockFoundationUser: User = {
+  id: 'user_foundation_1',
+  email: 'foundation@example.com',
+  role: 'foundation',
+  firstName: 'Hope',
+  lastName: 'Foundation',
+  displayName: 'Hope Foundation',
+};
+
 // Mock user profiles
 const mockUserProfiles: Record<string, any> = {
   '1': {
@@ -50,15 +60,24 @@ class MockAuthService {
 
   // Login with email and password
   async login(email: string, password: string): Promise<{ success: boolean; user?: User; error?: string }> {
-    // For demo purposes, we only accept the hardcoded admin credentials
+    // Check admin credentials
     if (email === 'admin@example.com' && password === 'Admin123!') {
       this.currentUser = mockAdminUser;
       this.isAuthenticated = true;
-      // Store in localStorage for persistence
       if (typeof window !== 'undefined') {
         localStorage.setItem('mockAuthUser', JSON.stringify(mockAdminUser));
       }
       return { success: true, user: mockAdminUser };
+    }
+    
+    // Check foundation credentials
+    if (email === 'foundation@example.com' && password === 'Foundation123!') {
+      this.currentUser = mockFoundationUser;
+      this.isAuthenticated = true;
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('mockAuthUser', JSON.stringify(mockFoundationUser));
+      }
+      return { success: true, user: mockFoundationUser };
     }
     
     return { success: false, error: 'Invalid credentials' };

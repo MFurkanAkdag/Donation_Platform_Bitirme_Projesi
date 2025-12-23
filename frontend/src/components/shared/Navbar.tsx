@@ -19,6 +19,8 @@ export default function Navbar() {
 
   const cartItemCount = cart.length;
 
+  const isOrganization = user && ['foundation', 'association', 'ngo'].includes(user.role?.toLowerCase() || '');
+
   const handleLogout = () => {
     logout();
     // Redirect to home page
@@ -71,6 +73,18 @@ export default function Navbar() {
         </NavbarItem>
         <NavbarItem>
           <Link
+            href="/organizations"
+            className={`text-base font-medium transition-colors ${
+              isActive("/organizations")
+                ? "text-blue-600"
+                : "text-gray-700 hover:text-blue-600"
+            }`}
+          >
+            Organizations
+          </Link>
+        </NavbarItem>
+        <NavbarItem>
+          <Link
             href="/about"
             className={`text-base font-medium transition-colors ${
               isActive("/about")
@@ -118,9 +132,15 @@ export default function Navbar() {
                       <Avatar src={user.avatarUrl} size="sm" />
                     ) : (
                       <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
-                        <span className="text-blue-800 font-medium">
-                          {user.firstName?.charAt(0) || user.displayName?.charAt(0) || "U"}
-                        </span>
+                        {isOrganization ? (
+                          <span className="text-blue-800 font-medium">
+                            {user.displayName?.charAt(0) || "O"}
+                          </span>
+                        ) : (
+                          <span className="text-blue-800 font-medium">
+                            {user.firstName?.charAt(0) || user.displayName?.charAt(0) || "U"}
+                          </span>
+                        )}
                       </div>
                     )}
                     <span className="hidden md:inline text-sm font-medium">
@@ -131,18 +151,54 @@ export default function Navbar() {
                         Admin
                       </span>
                     )}
+                    {isOrganization && (
+                      <span className="hidden md:inline text-xs bg-green-100 text-green-800 px-2 py-0.5 rounded-full">
+                        Org
+                      </span>
+                    )}
                   </div>
                 </DropdownTrigger>
                 <DropdownMenu aria-label="User menu">
-                  <DropdownItem key="account" href="/account">
-                    Account
-                  </DropdownItem>
-                  <DropdownItem key="settings" href="/account/settings">
-                    Settings
-                  </DropdownItem>
-                  <DropdownItem key="profile" href="/account/profile">
-                    Profile
-                  </DropdownItem>
+                  {isOrganization ? (
+                    <>
+                      <DropdownItem key="dashboard" href="/org/dashboard">
+                        Organization Dashboard
+                      </DropdownItem>
+                      <DropdownItem key="campaigns" href="/org/campaigns">
+                        My Campaigns
+                      </DropdownItem>
+                      <DropdownItem key="profile" href="/org/profile">
+                        Profile
+                      </DropdownItem>
+                      <DropdownItem key="settings" href="/account/settings">
+                        Settings
+                      </DropdownItem>
+                    </>
+                  ) : user?.role === 'admin' ? (
+                    <>
+                      <DropdownItem key="admin" href="/admin">
+                        Admin Panel
+                      </DropdownItem>
+                      <DropdownItem key="account" href="/account">
+                        Account
+                      </DropdownItem>
+                      <DropdownItem key="settings" href="/account/settings">
+                        Settings
+                      </DropdownItem>
+                    </>
+                  ) : (
+                    <>
+                      <DropdownItem key="account" href="/account">
+                        Account
+                      </DropdownItem>
+                      <DropdownItem key="settings" href="/account/settings">
+                        Settings
+                      </DropdownItem>
+                      <DropdownItem key="profile" href="/account/profile">
+                        Profile
+                      </DropdownItem>
+                    </>
+                  )}
                   <DropdownItem 
                     key="logout" 
                     onClick={handleLogout}

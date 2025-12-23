@@ -106,13 +106,13 @@ export default function SettingsPage() {
                     }}
                     className="w-full max-w-xs"
                   >
-                    <SelectItem key="public" value="public">
+                    <SelectItem key="public">
                       Public
                     </SelectItem>
-                    <SelectItem key="anonymous" value="anonymous">
+                    <SelectItem key="anonymous">
                       Anonymous
                     </SelectItem>
-                    <SelectItem key="private" value="private">
+                    <SelectItem key="private">
                       Private
                     </SelectItem>
                   </Select>

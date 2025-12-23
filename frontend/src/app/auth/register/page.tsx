@@ -3,12 +3,13 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@heroui/button";
-import { Input } from "@heroui/react";
+import { Input, Tabs, Tab } from "@heroui/react";
 import { Card, CardBody, CardHeader } from "@heroui/react";
 import { useAuth } from "@/contexts/AuthContext";
 import Link from "next/link";
 
 export default function RegisterPage() {
+  const [registrationType, setRegistrationType] = useState<"user" | "organization">("user");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
@@ -125,16 +126,54 @@ export default function RegisterPage() {
             </p>
           </div>
         </CardHeader>
-        <CardBody className="p-6">
-          {error && (
-            <div className="mb-4 rounded-md bg-red-50 p-4">
-              <div className="flex">
-                <div className="text-sm font-medium text-red-800">{error}</div>
+        <CardBody className="px-6 pt-4 pb-2">
+          <Tabs
+            selectedKey={registrationType}
+            onSelectionChange={(key) => setRegistrationType(key as "user" | "organization")}
+            fullWidth
+            color="primary"
+          >
+            <Tab key="user" title="Register as User" />
+            <Tab key="organization" title="Register as Organization" />
+          </Tabs>
+        </CardBody>
+        <CardBody className="p-6 pt-2">
+          {registrationType === "organization" ? (
+            <div className="space-y-4">
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <h3 className="font-semibold text-blue-900 mb-2">Organization Registration</h3>
+                <p className="text-sm text-blue-800 mb-3">
+                  Register your organization to create campaigns and receive donations.
+                </p>
+                <Button
+                  color="primary"
+                  onClick={() => router.push('/auth/register/organization')}
+                  className="w-full"
+                >
+                  Start Organization Registration
+                </Button>
+              </div>
+              <div className="text-center">
+                <Button
+                  variant="light"
+                  onClick={() => setRegistrationType("user")}
+                  className="text-gray-600"
+                >
+                  ← Back to User Registration
+                </Button>
               </div>
             </div>
-          )}
-          
-          <form onSubmit={handleSubmit} className="space-y-4">
+          ) : (
+            <>
+              {error && (
+                <div className="mb-4 rounded-md bg-red-50 p-4">
+                  <div className="flex">
+                    <div className="text-sm font-medium text-red-800">{error}</div>
+                  </div>
+                </div>
+              )}
+              
+              <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Input
@@ -233,7 +272,9 @@ export default function RegisterPage() {
                 Create Account
               </Button>
             </div>
-          </form>
+              </form>
+            </>
+          )}
         </CardBody>
       </Card>
     </div>
