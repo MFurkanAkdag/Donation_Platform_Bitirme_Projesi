@@ -9,7 +9,6 @@ import com.seffafbagis.api.exception.PaymentException;
 import com.seffafbagis.api.entity.donation.Donation;
 import com.seffafbagis.api.entity.donation.Transaction;
 import com.seffafbagis.api.entity.user.User;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -65,7 +64,7 @@ public class IyzicoService {
 
         if (!"success".equals(threedsInitialize.getStatus())) {
             log.error("Iyzico 3DS Init validation failed: {}", threedsInitialize.getErrorMessage());
-            throw new PaymentException(threedsInitialize.getErrorCode(), threedsInitialize.getErrorMessage());
+            throw new PaymentException(threedsInitialize.getErrorMessage(), threedsInitialize.getErrorCode(), false);
         }
 
         return threedsInitialize;
@@ -174,7 +173,7 @@ public class IyzicoService {
         Card card = Card.create(cardRequest, iyzicoOptions);
 
         if (!"success".equals(card.getStatus())) {
-            throw new PaymentException(card.getErrorCode(), card.getErrorMessage());
+            throw new PaymentException(card.getErrorMessage(), card.getErrorCode(), false);
         }
 
         SavedCardResponse cardInfo = new SavedCardResponse();
@@ -196,7 +195,7 @@ public class IyzicoService {
         CardList cardList = CardList.retrieve(request, iyzicoOptions);
 
         if (!"success".equals(cardList.getStatus())) {
-            throw new PaymentException(cardList.getErrorCode(), cardList.getErrorMessage());
+            throw new PaymentException(cardList.getErrorMessage(), cardList.getErrorCode(), false);
         }
 
         return cardList.getCardDetails().stream()

@@ -24,6 +24,9 @@ public class CampaignCategory extends BaseEntity {
     @JoinColumn(name = "category_id", nullable = false)
     private Category category;
 
+    @Column(name = "is_primary")
+    private Boolean isPrimary = false;
+
     // Getters and Setters
 
     public Campaign getCampaign() {
@@ -40,5 +43,13 @@ public class CampaignCategory extends BaseEntity {
 
     public void setCategory(Category category) {
         this.category = category;
+    }
+
+    public Boolean getIsPrimary() {
+        return isPrimary;
+    }
+
+    public void setIsPrimary(Boolean isPrimary) {
+        this.isPrimary = isPrimary;
     }
 }

@@ -1,5 +1,6 @@
 package com.seffafbagis.api.service.interfaces;
 
+import com.seffafbagis.api.dto.response.campaign.CampaignDetailResponse;
 import com.seffafbagis.api.dto.response.campaign.CampaignResponse;
 import com.seffafbagis.api.dto.response.campaign.CampaignStatistics;
 import org.springframework.data.domain.Page;
@@ -21,6 +22,14 @@ public interface ICampaignService {
      * @throws com.seffafbagis.api.exception.ResourceNotFoundException if not found
      */
     CampaignResponse getById(UUID id);
+
+    /**
+     * Get campaign detail by ID
+     *
+     * @param id Campaign UUID
+     * @return CampaignDetailResponse DTO
+     */
+    CampaignDetailResponse getCampaignDetail(UUID id);
 
     /**
      * Get all campaigns with pagination

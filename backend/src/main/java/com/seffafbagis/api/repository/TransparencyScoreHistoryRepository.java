@@ -15,7 +15,7 @@ import java.util.UUID;
 @Repository
 public interface TransparencyScoreHistoryRepository extends JpaRepository<TransparencyScoreHistory, UUID> {
 
-    Page<TransparencyScoreHistory> findAllByOrganizationIdOrderByCreatedAtDesc(UUID organizationId, Pageable pageable);
+    Page<TransparencyScoreHistory> findByOrganizationIdOrderByCreatedAtDesc(UUID organizationId, Pageable pageable);
 
     List<TransparencyScoreHistory> findTop10ByOrganizationIdOrderByCreatedAtDesc(UUID organizationId);
 }

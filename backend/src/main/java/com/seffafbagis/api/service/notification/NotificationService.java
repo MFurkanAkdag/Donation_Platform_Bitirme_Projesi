@@ -108,7 +108,7 @@ public class NotificationService {
         Notification notification = notificationRepository.findById(notificationId)
                 .orElseThrow(() -> new RuntimeException("Bildirim bulunamadı"));
 
-        if (!notification.getUser().getId().equals(userId)) {
+        if (!notification.getUserId().equals(userId)) {
             throw new RuntimeException("Bu bildirimi silme yetkiniz yok");
         }
 
@@ -118,14 +118,35 @@ public class NotificationService {
     @Transactional
     public void createNotification(UUID userId, NotificationType type, String title, String message,
             Map<String, Object> data) {
-        User user = userRepository.getReferenceById(userId);
+        // User user = userRepository.getReferenceById(userId); // Notification stores
+        // userId directly now
 
         Notification notification = new Notification();
-        notification.setUser(user);
-        notification.setType(type);
+        notification.setUserId(userId);
+        notification.setType(type.name());
         notification.setTitle(title);
         notification.setMessage(message);
-        notification.setData(data);
+
+        // Notification entity doesn't have data map, so we try to extract entityType/Id
+        // if possible
+        if (data != null) {
+            if (data.containsKey("donationId")) {
+                notification.setEntityType("DONATION");
+                notification.setEntityId((UUID) data.get("donationId"));
+            } else if (data.containsKey("evidenceId")) {
+                notification.setEntityType("EVIDENCE");
+                notification.setEntityId((UUID) data.get("evidenceId"));
+            } else if (data.containsKey("applicationId")) {
+                notification.setEntityType("APPLICATION");
+                notification.setEntityId((UUID) data.get("applicationId"));
+            } else if (data.containsKey("campaignId")) {
+                notification.setEntityType("CAMPAIGN");
+                notification.setEntityId((UUID) data.get("campaignId"));
+            } else if (data.containsKey("organizationId")) {
+                notification.setEntityType("ORGANIZATION");
+                notification.setEntityId((UUID) data.get("organizationId"));
+            }
+        }
 
         notificationRepository.save(notification);
     }
@@ -421,14 +442,24 @@ public class NotificationService {
     }
 
     private NotificationResponse mapToResponse(Notification notification) {
+        Map<String, Object> data = null;
+        if (notification.getEntityType() != null && notification.getEntityId() != null) {
+            // Reconstruct minimal data
+            data = Map.of(
+                    "entityType", notification.getEntityType(),
+                    "entityId", notification.getEntityId());
+        }
+
         return NotificationResponse.builder()
                 .id(notification.getId())
                 .type(notification.getType())
-                .typeName(getTypeNameInTurkish(notification.getType()))
+                .typeName(getTypeNameInTurkish(NotificationType.valueOf(notification.getType())))
                 .title(notification.getTitle())
                 .message(notification.getMessage())
-                .data(notification.getData())
-                .isRead(notification.isRead())
+                .data(data)
+                .entityType(notification.getEntityType())
+                .entityId(notification.getEntityId())
+                .isRead(notification.getIsRead())
                 .createdAt(notification.getCreatedAt())
                 .timeAgo(calculateTimeAgo(notification.getCreatedAt()))
                 .build();

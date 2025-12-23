@@ -96,6 +96,6 @@ public class TransactionService {
     @Transactional(readOnly = true)
     public org.springframework.data.domain.Page<Transaction> getTransactionsByStatus(String status,
             org.springframework.data.domain.Pageable pageable) {
-        return transactionRepository.findByStatus(status, pageable);
+        return transactionRepository.findAllByStatus(status, pageable);
     }
 }

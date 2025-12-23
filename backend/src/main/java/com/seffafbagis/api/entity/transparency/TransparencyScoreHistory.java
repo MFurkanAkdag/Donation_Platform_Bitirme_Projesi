@@ -2,6 +2,10 @@ package com.seffafbagis.api.entity.transparency;
 
 import com.seffafbagis.api.entity.base.BaseEntity;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.util.UUID;
@@ -13,6 +17,10 @@ import java.util.UUID;
 @Table(name = "transparency_score_history", indexes = {
         @Index(name = "idx_transparency_history_org", columnList = "organization_id")
 })
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class TransparencyScoreHistory extends BaseEntity {
 
     @Column(name = "organization_id", nullable = false)
@@ -38,70 +46,4 @@ public class TransparencyScoreHistory extends BaseEntity {
 
     @Column(columnDefinition = "TEXT")
     private String notes;
-
-    // Getters and Setters
-
-    public UUID getOrganizationId() {
-        return organizationId;
-    }
-
-    public void setOrganizationId(UUID organizationId) {
-        this.organizationId = organizationId;
-    }
-
-    public BigDecimal getPreviousScore() {
-        return previousScore;
-    }
-
-    public void setPreviousScore(BigDecimal previousScore) {
-        this.previousScore = previousScore;
-    }
-
-    public BigDecimal getNewScore() {
-        return newScore;
-    }
-
-    public void setNewScore(BigDecimal newScore) {
-        this.newScore = newScore;
-    }
-
-    public BigDecimal getChangeAmount() {
-        return changeAmount;
-    }
-
-    public void setChangeAmount(BigDecimal changeAmount) {
-        this.changeAmount = changeAmount;
-    }
-
-    public String getChangeReason() {
-        return changeReason;
-    }
-
-    public void setChangeReason(String changeReason) {
-        this.changeReason = changeReason;
-    }
-
-    public String getRelatedEntityType() {
-        return relatedEntityType;
-    }
-
-    public void setRelatedEntityType(String relatedEntityType) {
-        this.relatedEntityType = relatedEntityType;
-    }
-
-    public UUID getRelatedEntityId() {
-        return relatedEntityId;
-    }
-
-    public void setRelatedEntityId(UUID relatedEntityId) {
-        this.relatedEntityId = relatedEntityId;
-    }
-
-    public String getNotes() {
-        return notes;
-    }
-
-    public void setNotes(String notes) {
-        this.notes = notes;
-    }
 }

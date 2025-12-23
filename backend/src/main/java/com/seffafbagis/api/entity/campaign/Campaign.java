@@ -66,6 +66,20 @@ public class Campaign extends BaseEntity {
     @Column(name = "is_urgent")
     private Boolean isUrgent = false;
 
+    @Column(name = "evidence_deadline_days")
+    private Integer evidenceDeadlineDays = 15;
+
+    @Column(name = "approved_at")
+    private LocalDateTime approvedAt;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "approved_by")
+    private com.seffafbagis.api.entity.user.User approvedBy;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "created_by")
+    private com.seffafbagis.api.entity.user.User createdBy;
+
     // Getters and Setters
 
     public Organization getOrganization() {
@@ -186,5 +200,37 @@ public class Campaign extends BaseEntity {
 
     public void setIsUrgent(Boolean isUrgent) {
         this.isUrgent = isUrgent;
+    }
+
+    public Integer getEvidenceDeadlineDays() {
+        return evidenceDeadlineDays;
+    }
+
+    public void setEvidenceDeadlineDays(Integer evidenceDeadlineDays) {
+        this.evidenceDeadlineDays = evidenceDeadlineDays;
+    }
+
+    public LocalDateTime getApprovedAt() {
+        return approvedAt;
+    }
+
+    public void setApprovedAt(LocalDateTime approvedAt) {
+        this.approvedAt = approvedAt;
+    }
+
+    public com.seffafbagis.api.entity.user.User getApprovedBy() {
+        return approvedBy;
+    }
+
+    public void setApprovedBy(com.seffafbagis.api.entity.user.User approvedBy) {
+        this.approvedBy = approvedBy;
+    }
+
+    public com.seffafbagis.api.entity.user.User getCreatedBy() {
+        return createdBy;
+    }
+
+    public void setCreatedBy(com.seffafbagis.api.entity.user.User createdBy) {
+        this.createdBy = createdBy;
     }
 }

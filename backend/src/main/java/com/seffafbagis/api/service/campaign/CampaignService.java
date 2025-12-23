@@ -302,7 +302,8 @@ public class CampaignService implements ICampaignService {
 
         // Publish campaign completed event
         UUID userId = SecurityUtils.getCurrentUserId().orElse(null);
-        LocalDateTime evidenceDeadline = LocalDateTime.now().plusDays(30);
+        LocalDateTime evidenceDeadline = LocalDateTime.now()
+                .plusDays(campaign.getEvidenceDeadlineDays() != null ? campaign.getEvidenceDeadlineDays() : 15);
         int donorCount = campaign.getDonorCount() != null ? campaign.getDonorCount() : 0;
         BigDecimal collectedAmount = campaign.getCollectedAmount() != null ? campaign.getCollectedAmount()
                 : BigDecimal.ZERO;
@@ -396,11 +397,17 @@ public class CampaignService implements ICampaignService {
     public CampaignStatsResponse getCampaignStats(UUID campaignId) {
         Campaign campaign = findCampaignById(campaignId);
         CampaignStatsResponse stats = new CampaignStatsResponse();
-        stats.setTotalDonations(
+        // Correct mapping: Total Collected Amount
+        stats.setTotalCollected(
                 campaign.getCollectedAmount() != null ? campaign.getCollectedAmount() : BigDecimal.ZERO);
-        stats.setTotalDonors(campaign.getDonorCount() != null ? campaign.getDonorCount() : 0);
-        if (stats.getTotalDonors() > 0) {
-            stats.setAverageDonation(stats.getTotalDonations().divide(BigDecimal.valueOf(stats.getTotalDonors()), 2,
+
+        // Total Donors (which we use as approximation for donation count/donors)
+        Long donors = campaign.getDonorCount() != null ? campaign.getDonorCount().longValue() : 0L;
+        stats.setTotalDonors(donors);
+        stats.setTotalDonations(donors); // Assuming 1 donor = 1 donation for now or just using same count
+
+        if (donors > 0) {
+            stats.setAverageDonation(stats.getTotalCollected().divide(BigDecimal.valueOf(donors), 2,
                     java.math.RoundingMode.HALF_UP));
         } else {
             stats.setAverageDonation(BigDecimal.ZERO);

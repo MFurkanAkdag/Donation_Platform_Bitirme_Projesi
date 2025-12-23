@@ -113,8 +113,8 @@ public class BankTransferService {
                 .branchName(bankAccount.getBranchName())
                 .accountHolder(bankAccount.getAccountHolder())
                 .iban(bankAccount.getIban())
-                .amount(request.getAmount())
-                .expiresAt(reference.getExpiresAt().toLocalDateTime())
+                .expectedAmount(request.getAmount())
+                .expiresAt(reference.getExpiresAt())
                 .instructions("Lütfen havale/EFT yaparken açıklama kısmına '" + code
                         + "' referans kodunu yazınız. Bu kod 7 gün geçerlidir.")
                 .build();

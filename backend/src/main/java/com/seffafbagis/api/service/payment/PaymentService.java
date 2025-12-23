@@ -10,10 +10,8 @@ import com.seffafbagis.api.dto.response.payment.*;
 import com.seffafbagis.api.enums.DonationStatus;
 import com.seffafbagis.api.exception.PaymentException;
 import com.seffafbagis.api.entity.donation.Donation;
-import com.seffafbagis.api.entity.donation.Donation;
 import com.seffafbagis.api.entity.donation.Transaction;
 import com.seffafbagis.api.entity.user.User;
-import com.seffafbagis.api.repository.DonationRepository;
 import com.seffafbagis.api.repository.DonationRepository;
 import com.seffafbagis.api.security.SecurityUtils;
 import com.iyzipay.model.Refund;
@@ -44,13 +42,13 @@ public class PaymentService {
     public ThreeDSInitResponse initializePayment(PaymentRequest request) {
         UUID userId = SecurityUtils.getCurrentUserId().orElseThrow(() -> new UnauthorizedException("User not found"));
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new PaymentException("USER_NOT_FOUND", "User not found"));
+                .orElseThrow(() -> new PaymentException("User not found", "USER_NOT_FOUND", false));
 
         Donation donation = donationRepository.findById(request.getDonationId())
-                .orElseThrow(() -> new PaymentException("DONATION_NOT_FOUND", "Donation not found"));
+                .orElseThrow(() -> new PaymentException("Donation not found", "DONATION_NOT_FOUND", false));
 
         if (donation.getStatus() == DonationStatus.COMPLETED) {
-            throw new PaymentException("ALREADY_PAID", "This donation is already paid");
+            throw new PaymentException("This donation is already paid", "ALREADY_PAID", false);
         }
 
         // 1. Initialize 3DS at Iyzico
@@ -77,13 +75,13 @@ public class PaymentService {
     public PaymentResultResponse processDirectPayment(PaymentRequest request) {
         UUID userId = SecurityUtils.getCurrentUserId().orElseThrow(() -> new UnauthorizedException("User not found"));
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new PaymentException("USER_NOT_FOUND", "User not found"));
+                .orElseThrow(() -> new PaymentException("User not found", "USER_NOT_FOUND", false));
 
         Donation donation = donationRepository.findById(request.getDonationId())
-                .orElseThrow(() -> new PaymentException("DONATION_NOT_FOUND", "Donation not found"));
+                .orElseThrow(() -> new PaymentException("Donation not found", "DONATION_NOT_FOUND", false));
 
         if (donation.getStatus() == DonationStatus.COMPLETED) {
-            throw new PaymentException("ALREADY_PAID", "This donation is already paid");
+            throw new PaymentException("This donation is already paid", "ALREADY_PAID", false);
         }
 
         com.iyzipay.model.Payment payment = iyzicoService.createDirectPayment(request, donation, user);
@@ -104,7 +102,7 @@ public class PaymentService {
             donation.setStatus(DonationStatus.FAILED);
             donationRepository.save(donation);
 
-            throw new PaymentException(payment.getErrorCode(), payment.getErrorMessage());
+            throw new PaymentException(payment.getErrorMessage(), payment.getErrorCode(), false);
         }
     }
 
@@ -171,7 +169,7 @@ public class PaymentService {
     public SavedCardResponse saveCard(SaveCardRequest request) {
         UUID userId = SecurityUtils.getCurrentUserId().orElseThrow(() -> new UnauthorizedException("User not found"));
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new PaymentException("USER_NOT_FOUND", "User not found"));
+                .orElseThrow(() -> new PaymentException("User not found", "USER_NOT_FOUND", false));
 
         return iyzicoService.createCardToken(request, user);
     }
@@ -181,7 +179,7 @@ public class PaymentService {
         Transaction transaction = transactionService.getTransaction(request.getTransactionId());
 
         if (!"success".equals(transaction.getStatus())) {
-            throw new PaymentException("INVALID_TRANSACTION", "Can only refund successful transactions");
+            throw new PaymentException("Can only refund successful transactions", "INVALID_TRANSACTION", false);
         }
 
         Refund refund = iyzicoService.createRefund(transaction, request.getAmount());
@@ -197,7 +195,7 @@ public class PaymentService {
                     .message("Refund successful")
                     .build();
         } else {
-            throw new PaymentException(refund.getErrorCode(), refund.getErrorMessage());
+            throw new PaymentException(refund.getErrorMessage(), refund.getErrorCode(), false);
         }
     }
 

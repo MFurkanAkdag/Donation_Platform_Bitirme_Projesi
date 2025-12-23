@@ -61,5 +61,7 @@ public class CreateCampaignRequest {
 
     private List<UUID> categoryIds;
 
+    private UUID primaryCategoryId;
+
     private List<UUID> donationTypeIds;
 }

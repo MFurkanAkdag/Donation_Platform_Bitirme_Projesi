@@ -11,6 +11,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
+import com.seffafbagis.api.dto.request.evidence.CreateEvidenceDocumentRequest;
 
 /**
  * DTO for creating evidence.
@@ -45,4 +46,6 @@ public class CreateEvidenceRequest {
     private String invoiceNumber;
 
     private List<UUID> documentIds;
+
+    private List<CreateEvidenceDocumentRequest> documents;
 }

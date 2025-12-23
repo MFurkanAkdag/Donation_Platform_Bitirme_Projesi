@@ -291,13 +291,24 @@ public class TransparencyScoreService {
 
     private void recordHistory(Organization organization, BigDecimal prevScore, BigDecimal newScore, String reason,
             Campaign campaign, Evidence evidence) {
+        UUID relatedEntityId = null;
+        String relatedEntityType = null;
+
+        if (campaign != null) {
+            relatedEntityId = campaign.getId();
+            relatedEntityType = "CAMPAIGN";
+        } else if (evidence != null) {
+            relatedEntityId = evidence.getId();
+            relatedEntityType = "EVIDENCE";
+        }
+
         TransparencyScoreHistory history = TransparencyScoreHistory.builder()
-                .organization(organization)
+                .organizationId(organization.getId())
                 .previousScore(prevScore)
                 .newScore(newScore)
                 .changeReason(reason)
-                .campaign(campaign)
-                .evidence(evidence)
+                .relatedEntityId(relatedEntityId)
+                .relatedEntityType(relatedEntityType)
                 .build();
         historyRepository.save(history);
 
@@ -330,13 +341,22 @@ public class TransparencyScoreService {
         BigDecimal change = history.getNewScore().subtract(
                 history.getPreviousScore() != null ? history.getPreviousScore() : BigDecimal.ZERO);
 
+        String campaignTitle = null;
+        if ("CAMPAIGN".equals(history.getRelatedEntityType()) && history.getRelatedEntityId() != null) {
+            campaignTitle = campaignRepository.findById(history.getRelatedEntityId())
+                    .map(Campaign::getTitle)
+                    .orElse(null);
+        }
+
         return ScoreHistoryResponse.builder()
                 .id(history.getId())
                 .previousScore(history.getPreviousScore())
                 .newScore(history.getNewScore())
                 .changeAmount(change)
                 .changeReason(history.getChangeReason())
-                .campaignTitle(history.getCampaign() != null ? history.getCampaign().getTitle() : null)
+                .relatedEntityType(history.getRelatedEntityType())
+                .relatedEntityId(history.getRelatedEntityId())
+                .campaignTitle(campaignTitle)
                 .createdAt(history.getCreatedAt())
                 .build();
     }

@@ -247,11 +247,13 @@ public class EvidenceService {
             }
 
             // Publish evidence approved event (listeners handle score and notifications)
+            // Publish evidence approved event (listeners handle score and notifications)
             EvidenceApprovedEvent approvedEvent = new EvidenceApprovedEvent(
                     reviewer.getId(),
                     evidence.getId(),
                     evidence.getCampaign().getId(),
                     evidence.getCampaign().getOrganization().getId(),
+                    evidence.getAmountSpent(),
                     onTime);
             eventPublisher.publishEvent(approvedEvent);
 
