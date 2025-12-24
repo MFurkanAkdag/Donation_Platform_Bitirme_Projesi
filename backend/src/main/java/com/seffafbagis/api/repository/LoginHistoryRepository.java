@@ -33,10 +33,10 @@ public interface LoginHistoryRepository extends JpaRepository<LoginHistory, UUID
 
     long countByUserAndLoginStatusAndCreatedAtAfter(User user, String loginStatus, OffsetDateTime createdAt);
 
-    @Query("SELECT COUNT(h) FROM LoginHistory h WHERE h.userId = :userId AND h.success = false AND h.createdAt > :since")
+    @Query("SELECT COUNT(h) FROM LoginHistory h WHERE h.user.id = :userId AND h.loginStatus = 'failed' AND h.createdAt > :since")
     long countFailedLoginsSince(@Param("userId") UUID userId, @Param("since") OffsetDateTime since);
 
-    @Query("SELECT COUNT(DISTINCT h.userId) FROM LoginHistory h WHERE h.createdAt > :since")
+    @Query("SELECT COUNT(DISTINCT h.user.id) FROM LoginHistory h WHERE h.createdAt > :since")
     long countDistinctUserIdByCreatedAtAfter(@Param("since") OffsetDateTime since);
 
     @Modifying

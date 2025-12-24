@@ -3,23 +3,39 @@ package com.seffafbagis.api.config;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.domain.AuditorAware;
+import org.springframework.data.auditing.DateTimeProvider;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
+import java.time.OffsetDateTime;
 import java.util.Optional;
 
 /**
- * Enables JPA auditing so {@code @CreatedDate} and {@code @LastModifiedDate} work across entities.
- * The current auditor is derived from the authenticated principal or falls back to "system" for scheduled tasks.
+ * Enables JPA auditing so {@code @CreatedDate} and {@code @LastModifiedDate}
+ * work across entities.
+ * The current auditor is derived from the authenticated principal or falls back
+ * to "system" for scheduled tasks.
  */
 @Configuration
-@EnableJpaAuditing(auditorAwareRef = "auditorAware")
+@EnableJpaAuditing(auditorAwareRef = "auditorAware", dateTimeProviderRef = "offsetDateTimeProvider")
 public class AuditConfig {
 
     @Bean
     public AuditorAware<String> auditorAware() {
         return () -> Optional.of(resolveCurrentAuditor());
+    }
+
+    /**
+     * OffsetDateTime döndüren DateTimeProvider bean'i.
+     * 
+     * Spring Data Auditing varsayılan olarak LocalDateTime kullanır,
+     * ancak bizim entity'lerimiz OffsetDateTime kullandığı için
+     * özel bir provider tanımlamak gerekir.
+     */
+    @Bean
+    public DateTimeProvider offsetDateTimeProvider() {
+        return () -> Optional.of(OffsetDateTime.now());
     }
 
     private String resolveCurrentAuditor() {

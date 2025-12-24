@@ -17,7 +17,7 @@ import java.util.UUID;
 @Repository
 public interface ApplicationRepository extends JpaRepository<Application, UUID>, JpaSpecificationExecutor<Application> {
 
-    Page<Application> findAllByCampaignId(UUID campaignId, Pageable pageable);
+    Page<Application> findByAssignedCampaignId(UUID campaignId, Pageable pageable);
 
     Page<Application> findByStatus(ApplicationStatus status, Pageable pageable);
 
@@ -25,11 +25,10 @@ public interface ApplicationRepository extends JpaRepository<Application, UUID>,
 
     Page<Application> findByAssignedOrganizationId(UUID organizationId, Pageable pageable);
 
-    List<Application> findAllByCampaignIdAndStatus(UUID campaignId, ApplicationStatus status);
+    List<Application> findByAssignedCampaignIdAndStatus(UUID campaignId, ApplicationStatus status);
 
-    long countByCampaignId(UUID campaignId);
+    long countByAssignedCampaignId(UUID campaignId);
 
     long countByStatus(ApplicationStatus status);
 
-    boolean existsByIdentityNumberAndCampaignId(String identityNumber, UUID campaignId);
 }

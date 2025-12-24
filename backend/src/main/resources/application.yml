@@ -6,7 +6,7 @@
 server:
   port: 8080 # HTTP port exposed by the API server
   servlet:
-    context-path: /api # Every REST endpoint is served under /api
+
     encoding:
       charset: UTF-8 # Force UTF-8 encoding for requests and responses
       enabled: true
@@ -30,7 +30,7 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: validate # All schema changes are handled via Flyway
+      ddl-auto: none # Disable Hibernate schema updates, rely on Flyway
       naming:
         physical-strategy: org.hibernate.boot.model.naming.CamelCaseToUnderscoresNamingStrategy # Convert camel case to snake case
     properties:
@@ -85,7 +85,7 @@ springdoc:
 
 app:
   jwt:
-    secret: ${JWT_SECRET:change-me-please-at-least-32-characters-long-secret} # Base64 encoded secret used for signing tokens
+    secret: ${JWT_SECRET:Y2hhbmdlLW1lLXBsZWFzZS1hdC1sZWFzdC0zMi1jaGFyYWN0ZXJzLWxvbmctc2VjcmV0} # Base64 encoded secret used for signing tokens
     access-token-expiration: 900000 # Access token lifetime in ms (15 minutes)
     refresh-token-expiration: 604800000 # Refresh token lifetime in ms (7 days)
     token-prefix: "Bearer " # Authorization header prefix

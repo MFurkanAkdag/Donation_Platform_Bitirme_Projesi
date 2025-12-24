@@ -17,9 +17,6 @@ public interface TransactionRepository extends JpaRepository<Transaction, UUID> 
 
     Optional<Transaction> findByDonationId(UUID donationId);
 
-    Optional<Transaction> findByTransactionId(String transactionId);
-
     Page<Transaction> findAllByStatus(String status, Pageable pageable);
 
-    boolean existsByTransactionId(String transactionId);
 }

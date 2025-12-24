@@ -30,11 +30,7 @@ public class AuditAspect {
     public void auditableMethod() {
     }
 
-    // Example pointcut for sensitive data access, assuming Service exists
-    // Adjust package name if UserSensitiveDataService is different
-    @Pointcut("execution(* com.seffafbagis.api.service.user.UserSensitiveDataService.get*(..))")
-    public void sensitiveDataAccess() {
-    }
+    // Pointcut removed as UserSensitiveDataService does not exist
 
     @Around("auditableMethod()")
     public Object auditAnnotatedMethod(ProceedingJoinPoint joinPoint) throws Throwable {
@@ -109,14 +105,4 @@ public class AuditAspect {
         }
     }
 
-    @AfterReturning(pointcut = "sensitiveDataAccess()", returning = "result")
-    public void auditSensitiveDataAccess(JoinPoint joinPoint, Object result) {
-        try {
-            UUID userId = SecurityUtils.getCurrentUserId().orElse(null);
-            // Don't log the actual data (result) for sensitive access!
-            auditLogService.log(AuditAction.SENSITIVE_DATA_ACCESS, userId, "SensitiveData", null);
-        } catch (Exception e) {
-            log.error("Failed to audit sensitive data access", e);
-        }
-    }
 }

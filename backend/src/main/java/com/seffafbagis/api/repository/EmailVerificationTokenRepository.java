@@ -19,8 +19,6 @@ import java.util.UUID;
 @Repository
 public interface EmailVerificationTokenRepository extends JpaRepository<EmailVerificationToken, UUID> {
 
-    Optional<EmailVerificationToken> findByToken(String token);
-
     Optional<EmailVerificationToken> findByTokenHash(String tokenHash);
 
     Optional<EmailVerificationToken> findByUserId(UUID userId);

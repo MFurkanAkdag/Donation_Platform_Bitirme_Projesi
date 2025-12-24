@@ -60,21 +60,33 @@ public class ReportController {
 
     // --- Admin Endpoints ---
 
-    @GetMapping("/admin/reports")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Page<ReportResponse>> getAllReports(
-            @RequestParam(required = false) ReportStatus status,
-            @RequestParam(required = false) ReportType type,
-            @PageableDefault(sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
-        return ResponseEntity.ok(reportService.getAllReports(status, type, pageable));
-    }
+    /*
+     * @GetMapping("/admin/reports")
+     * 
+     * @PreAuthorize("hasRole('ADMIN')")
+     * public ResponseEntity<Page<ReportResponse>> getAllReports(
+     * 
+     * @RequestParam(required = false) ReportStatus status,
+     * 
+     * @RequestParam(required = false) ReportType type,
+     * 
+     * @PageableDefault(sort = "createdAt", direction = Sort.Direction.DESC)
+     * Pageable pageable) {
+     * return ResponseEntity.ok(reportService.getAllReports(status, type,
+     * pageable));
+     * }
+     */
 
-    @GetMapping("/admin/reports/pending")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Page<ReportResponse>> getPendingReports(
-            @PageableDefault(size = 20) Pageable pageable) {
-        return ResponseEntity.ok(reportService.getPendingReports(pageable));
-    }
+    /*
+     * @GetMapping("/admin/reports/pending")
+     * 
+     * @PreAuthorize("hasRole('ADMIN')")
+     * public ResponseEntity<Page<ReportResponse>> getPendingReports(
+     * 
+     * @PageableDefault(size = 20) Pageable pageable) {
+     * return ResponseEntity.ok(reportService.getPendingReports(pageable));
+     * }
+     */
 
     @GetMapping("/admin/reports/assigned")
     @PreAuthorize("hasRole('ADMIN')")
@@ -83,20 +95,29 @@ public class ReportController {
         return ResponseEntity.ok(reportService.getMyAssignedReports(pageable));
     }
 
-    @GetMapping("/admin/reports/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ReportDetailResponse> getReportDetail(@PathVariable UUID id) {
-        return ResponseEntity.ok(reportService.getReportDetail(id));
-    }
+    /*
+     * @GetMapping("/admin/reports/{id}")
+     * 
+     * @PreAuthorize("hasRole('ADMIN')")
+     * public ResponseEntity<ReportDetailResponse> getReportDetail(@PathVariable
+     * UUID id) {
+     * return ResponseEntity.ok(reportService.getReportDetail(id));
+     * }
+     */
 
-    @PostMapping("/admin/reports/{id}/assign")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Void> assignReport(
-            @PathVariable UUID id,
-            @Valid @RequestBody AssignReportRequest request) {
-        reportService.assignReport(id, request);
-        return ResponseEntity.ok().build();
-    }
+    /*
+     * @PostMapping("/admin/reports/{id}/assign")
+     * 
+     * @PreAuthorize("hasRole('ADMIN')")
+     * public ResponseEntity<Void> assignReport(
+     * 
+     * @PathVariable UUID id,
+     * 
+     * @Valid @RequestBody AssignReportRequest request) {
+     * reportService.assignReport(id, request);
+     * return ResponseEntity.ok().build();
+     * }
+     */
 
     @PostMapping("/admin/reports/{id}/investigate")
     @PreAuthorize("hasRole('ADMIN')")
@@ -105,14 +126,19 @@ public class ReportController {
         return ResponseEntity.ok().build();
     }
 
-    @PostMapping("/admin/reports/{id}/resolve")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Void> resolveReport(
-            @PathVariable UUID id,
-            @Valid @RequestBody ResolveReportRequest request) {
-        reportService.resolveReport(id, request);
-        return ResponseEntity.ok().build();
-    }
+    /*
+     * @PostMapping("/admin/reports/{id}/resolve")
+     * 
+     * @PreAuthorize("hasRole('ADMIN')")
+     * public ResponseEntity<Void> resolveReport(
+     * 
+     * @PathVariable UUID id,
+     * 
+     * @Valid @RequestBody ResolveReportRequest request) {
+     * reportService.resolveReport(id, request);
+     * return ResponseEntity.ok().build();
+     * }
+     */
 
     @PutMapping("/admin/reports/{id}/priority")
     @PreAuthorize("hasRole('ADMIN')")

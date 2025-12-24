@@ -43,13 +43,13 @@ public interface EmailLogRepository extends JpaRepository<EmailLog, UUID> {
     /**
      * Count emails sent to a user.
      */
-    @Query("SELECT COUNT(l) FROM EmailLog l WHERE l.userId = :userId")
+    @Query("SELECT COUNT(l) FROM EmailLog l WHERE l.user.id = :userId")
     long countByUserId(@Param("userId") UUID userId);
 
     /**
      * Count emails of specific type sent to a user.
      */
-    @Query("SELECT COUNT(l) FROM EmailLog l WHERE l.userId = :userId AND l.emailType = :emailType")
+    @Query("SELECT COUNT(l) FROM EmailLog l WHERE l.user.id = :userId AND l.emailType = :emailType")
     long countByUserIdAndEmailType(@Param("userId") UUID userId, @Param("emailType") String emailType);
 
     Page<EmailLog> findAllByUserId(UUID userId, Pageable pageable);

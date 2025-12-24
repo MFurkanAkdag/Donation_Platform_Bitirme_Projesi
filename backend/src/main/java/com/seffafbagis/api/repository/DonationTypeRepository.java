@@ -17,13 +17,10 @@ public interface DonationTypeRepository extends JpaRepository<DonationType, UUID
 
     Optional<DonationType> findByName(String name);
 
-    Optional<DonationType> findByCode(String code);
-
     Optional<DonationType> findByTypeCode(DonationTypeCode typeCode);
 
     List<DonationType> findAllByIsActiveTrue();
 
     List<DonationType> findByIsActiveTrueOrderByNameAsc();
 
-    boolean existsByCode(String code);
 }

@@ -33,8 +33,6 @@ public interface UserRepository extends JpaRepository<User, UUID>, JpaSpecificat
     @Query("SELECT u FROM User u WHERE u.status = :status")
     Page<User> findAllByStatus(@Param("status") String status, Pageable pageable);
 
-    Optional<User> findByPhoneNumber(String phoneNumber);
-
     long countByRole(UserRole role);
 
     long countByStatus(UserStatus status);

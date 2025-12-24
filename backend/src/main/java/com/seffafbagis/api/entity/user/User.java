@@ -69,7 +69,7 @@ public class User extends BaseEntity {
      * - ADMIN: Yönetici
      */
     @Enumerated(EnumType.STRING)
-    @Column(name = "role", nullable = false, length = 20)
+    @Column(name = "role", nullable = false)
     private UserRole role = UserRole.DONOR;
 
     /**
@@ -81,7 +81,7 @@ public class User extends BaseEntity {
      * - PENDING_VERIFICATION: Doğrulama bekliyor
      */
     @Enumerated(EnumType.STRING)
-    @Column(name = "status", nullable = false, length = 30)
+    @Column(name = "status", nullable = false)
     private UserStatus status = UserStatus.PENDING_VERIFICATION;
 
     /**

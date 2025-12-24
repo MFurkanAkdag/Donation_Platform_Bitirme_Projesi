@@ -36,7 +36,7 @@ public interface OrganizationRepository extends JpaRepository<Organization, UUID
 
         @Query("SELECT o FROM Organization o WHERE " +
                         "(LOWER(o.legalName) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
-                        "LOWER(o.displayName) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
+                        "LOWER(o.tradeName) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
                         "LOWER(o.description) LIKE LOWER(CONCAT('%', :keyword, '%'))) AND " +
                         "o.verificationStatus = :status")
         Page<Organization> searchByKeyword(@Param("keyword") String keyword,

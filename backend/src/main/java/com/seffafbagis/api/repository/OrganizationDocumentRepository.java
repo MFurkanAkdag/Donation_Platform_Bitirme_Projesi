@@ -26,7 +26,7 @@ public interface OrganizationDocumentRepository extends JpaRepository<Organizati
 
     List<OrganizationDocument> findByOrganizationIdAndDocumentType(UUID organizationId, String documentType);
 
-    @org.springframework.data.jpa.repository.Query("SELECT d FROM OrganizationDocument d WHERE d.expiryDate < :date")
+    @org.springframework.data.jpa.repository.Query("SELECT d FROM OrganizationDocument d WHERE d.expiresAt < :date")
     List<OrganizationDocument> findExpiringDocuments(@Param("date") java.time.LocalDate date);
 
     void deleteAllByOrganizationId(UUID organizationId);
