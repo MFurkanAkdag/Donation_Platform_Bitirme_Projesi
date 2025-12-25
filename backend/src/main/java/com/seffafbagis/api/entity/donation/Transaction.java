@@ -26,6 +26,10 @@ public class Transaction extends BaseEntity {
     @JoinColumn(name = "donation_id", nullable = false)
     private Donation donation;
 
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "payment_session_id")
+    private PaymentSession paymentSession;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "payment_method", nullable = false)
     private PaymentMethod paymentMethod;
@@ -245,5 +249,13 @@ public class Transaction extends BaseEntity {
 
     public void setProcessedAt(OffsetDateTime processedAt) {
         this.processedAt = processedAt;
+    }
+
+    public PaymentSession getPaymentSession() {
+        return paymentSession;
+    }
+
+    public void setPaymentSession(PaymentSession paymentSession) {
+        this.paymentSession = paymentSession;
     }
 }

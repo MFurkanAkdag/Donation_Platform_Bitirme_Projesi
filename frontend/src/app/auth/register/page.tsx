@@ -26,47 +26,53 @@ export default function RegisterPage() {
       setError("First name and last name are required");
       return false;
     }
-    
+
     if (!email) {
       setError("Email is required");
       return false;
     }
-    
+
     if (!/\S+@\S+\.\S+/.test(email)) {
       setError("Email address is invalid");
       return false;
     }
-    
+
     if (!password) {
       setError("Password is required");
       return false;
     }
-    
+
     if (password.length < 8) {
       setError("Password must be at least 8 characters long");
       return false;
     }
-    
+
     if (password !== confirmPassword) {
       setError("Passwords do not match");
       return false;
     }
-    
+
     return true;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validateForm()) {
       return;
     }
-    
+
     setIsLoading(true);
     setError("");
 
     try {
-      const response = await register(email, password, firstName, lastName);
+      // Map registration type to role: "user" -> "DONOR"
+      const role = registrationType === "user" ? "DONOR" : "FOUNDATION";
+      // Assume the single checkbox covers both Terms and KVKK for now
+      const acceptTerms = true;
+      const acceptKvkk = true;
+
+      const response = await register(email, password, confirmPassword, firstName, lastName, role, acceptTerms, acceptKvkk);
       if (response.success) {
         setSuccess(true);
         // Redirect to account page after a short delay
@@ -98,8 +104,8 @@ export default function RegisterPage() {
               Welcome {firstName}! You will be redirected to your account page shortly.
             </p>
             <div className="mt-4">
-              <Button 
-                color="primary" 
+              <Button
+                color="primary"
                 onClick={() => router.push("/account")}
                 className="w-full"
               >
@@ -172,106 +178,106 @@ export default function RegisterPage() {
                   </div>
                 </div>
               )}
-              
+
               <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Input
-                  label="First Name"
-                  type="text"
-                  value={firstName}
-                  onChange={(e) => setFirstName(e.target.value)}
-                  placeholder="John"
-                  required
-                  isRequired
-                  className="w-full"
-                />
-              </div>
-              
-              <div>
-                <Input
-                  label="Last Name"
-                  type="text"
-                  value={lastName}
-                  onChange={(e) => setLastName(e.target.value)}
-                  placeholder="Doe"
-                  required
-                  isRequired
-                  className="w-full"
-                />
-              </div>
-            </div>
-            
-            <div>
-              <Input
-                label="Email address"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@example.com"
-                required
-                isRequired
-                className="w-full"
-              />
-            </div>
-            
-            <div>
-              <Input
-                label="Password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
-                required
-                isRequired
-                className="w-full"
-                description="Must be at least 8 characters with uppercase, lowercase, and number"
-              />
-            </div>
-            
-            <div>
-              <Input
-                label="Confirm Password"
-                type="password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                placeholder="••••••••"
-                required
-                isRequired
-                className="w-full"
-              />
-            </div>
-            
-            <div className="flex items-center">
-              <input
-                id="terms"
-                name="terms"
-                type="checkbox"
-                required
-                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-              />
-              <label htmlFor="terms" className="ml-2 block text-sm text-gray-900">
-                I agree to the{" "}
-                <Link href="/terms-of-service" className="text-blue-600 hover:text-blue-500">
-                  Terms of Service
-                </Link>{" "}
-                and{" "}
-                <Link href="/privacy-policy" className="text-blue-600 hover:text-blue-500">
-                  Privacy Policy
-                </Link>
-              </label>
-            </div>
-            
-            <div>
-              <Button
-                type="submit"
-                color="primary"
-                isLoading={isLoading}
-                className="w-full"
-              >
-                Create Account
-              </Button>
-            </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Input
+                      label="First Name"
+                      type="text"
+                      value={firstName}
+                      onChange={(e) => setFirstName(e.target.value)}
+                      placeholder="John"
+                      required
+                      isRequired
+                      className="w-full"
+                    />
+                  </div>
+
+                  <div>
+                    <Input
+                      label="Last Name"
+                      type="text"
+                      value={lastName}
+                      onChange={(e) => setLastName(e.target.value)}
+                      placeholder="Doe"
+                      required
+                      isRequired
+                      className="w-full"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <Input
+                    label="Email address"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="you@example.com"
+                    required
+                    isRequired
+                    className="w-full"
+                  />
+                </div>
+
+                <div>
+                  <Input
+                    label="Password"
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="••••••••"
+                    required
+                    isRequired
+                    className="w-full"
+                    description="Must be at least 8 characters with uppercase, lowercase, and number"
+                  />
+                </div>
+
+                <div>
+                  <Input
+                    label="Confirm Password"
+                    type="password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    placeholder="••••••••"
+                    required
+                    isRequired
+                    className="w-full"
+                  />
+                </div>
+
+                <div className="flex items-center">
+                  <input
+                    id="terms"
+                    name="terms"
+                    type="checkbox"
+                    required
+                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                  />
+                  <label htmlFor="terms" className="ml-2 block text-sm text-gray-900">
+                    I agree to the{" "}
+                    <Link href="/terms-of-service" className="text-blue-600 hover:text-blue-500">
+                      Terms of Service
+                    </Link>{" "}
+                    and{" "}
+                    <Link href="/privacy-policy" className="text-blue-600 hover:text-blue-500">
+                      Privacy Policy
+                    </Link>
+                  </label>
+                </div>
+
+                <div>
+                  <Button
+                    type="submit"
+                    color="primary"
+                    isLoading={isLoading}
+                    className="w-full"
+                  >
+                    Create Account
+                  </Button>
+                </div>
               </form>
             </>
           )}

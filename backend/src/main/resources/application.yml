@@ -85,7 +85,7 @@ springdoc:
 
 app:
   jwt:
-    secret: ${JWT_SECRET:dGhpcy1pcy1hLXZlcnktc2VjcmV0LWtleS1mb3Itc2VmZmFmLWJhZ2lzLXBsYXRmb3Jt} # Base64 encoded secret used for signing tokens
+    secret: c2VmZmFmLWJhZ2lzLXBsYXRmb3JtLXN1cGVyLXNlY3VyZS01MTItYml0LXNlY3JldC1rZXktZm9yLWhzNTEyLXNpZ25pbmctdmVyeS1pbXBvcnRhbnQtZG8tbm90LWNoYW5nZQ== # Base64 encoded key (>= 512 bits)
     access-token-expiration: 900000 # Access token lifetime in ms (15 minutes)
     refresh-token-expiration: 604800000 # Refresh token lifetime in ms (7 days)
     token-prefix: "Bearer " # Authorization header prefix

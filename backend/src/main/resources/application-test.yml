@@ -39,3 +39,15 @@ springdoc:
 app:
   cors:
     allowed-origins: http://localhost:3000 # Tests usually target localhost clients
+  frontend-url: "http://localhost:3000"
+  encryption:
+    secret-key: "12345678901234567890123456789012"
+
+iyzico:
+  api-key: "test-api-key"
+  secret-key: "test-secret-key"
+  base-url: "https://sandbox-api.iyzipay.com"
+  callback-url: "http://localhost:8080/api/payment/callback"
+
+
+

@@ -28,7 +28,7 @@ springdoc:
 
 app:
   jwt:
-    secret: c2VmZmFmLWJhZ2lzLXN1cGVyLXNlY3JldC1rZXktZm9yLWp3dC1zaWduaW5nLWF0LWxlYXN0LTY0LWJ5dGVzLWxvbmctdGhpcy1pcy1hLXNhbXBsZS1mb3ItZGV2LW1vZGUtb25seQ==
+    secret: c2VmZmFmLWJhZ2lzLXBsYXRmb3JtLXN1cGVyLXNlY3VyZS01MTItYml0LXNlY3JldC1rZXktZm9yLWhzNTEyLXNpZ25pbmctdmVyeS1pbXBvcnRhbnQtZG8tbm90LWNoYW5nZQ==
   cors:
     allowed-origins: http://localhost:3000,http://127.0.0.1:3000 # Allow both localhost notations for the frontend during development
   frontend-url: http://localhost:3000

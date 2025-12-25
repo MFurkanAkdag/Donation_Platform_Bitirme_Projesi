@@ -36,6 +36,7 @@ public class JwtTokenProvider {
 
     public JwtTokenProvider(JwtConfig jwtConfig) {
         this.jwtConfig = jwtConfig;
+        System.out.println("DEBUG: Decoded secret attempt: " + jwtConfig.getSecret());
         this.secretKey = Keys.hmacShaKeyFor(Decoders.BASE64.decode(jwtConfig.getSecret()));
     }
 

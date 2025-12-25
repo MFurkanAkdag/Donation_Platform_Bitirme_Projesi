@@ -1,13 +1,14 @@
 "use client";
 
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
-import { mockAuthService, User } from "@/lib/mockAuth";
+import { authService, User } from "@/services/authService";
+import { useRouter } from "next/navigation";
 
 interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
   login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
-  register: (email: string, password: string, firstName: string, lastName: string) => Promise<{ success: boolean; error?: string }>;
+  register: (email: string, password: string, confirmPassword: string, firstName: string, lastName: string, role: string, acceptTerms: boolean, acceptKvkk: boolean) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
   loading: boolean;
 }
@@ -18,57 +19,83 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
+  const router = useRouter();
 
   // Check authentication status on mount
   useEffect(() => {
-    const currentUser = mockAuthService.getCurrentUser();
-    if (currentUser) {
-      setUser(currentUser);
-      setIsAuthenticated(true);
-    }
-    setLoading(false);
+    const checkAuth = async () => {
+      const token = localStorage.getItem("accessToken");
+      if (token) {
+        try {
+          const userData = await authService.getCurrentUser();
+          setUser(userData);
+          setIsAuthenticated(true);
+        } catch (error) {
+          console.error("Auth check failed:", error);
+          localStorage.removeItem("accessToken");
+          setUser(null);
+          setIsAuthenticated(false);
+        }
+      }
+      setLoading(false);
+    };
+
+    checkAuth();
   }, []);
 
   const login = async (email: string, password: string) => {
     setLoading(true);
     try {
-      const response = await mockAuthService.login(email, password);
-      if (response.success && response.user) {
-        setUser(response.user);
-        setIsAuthenticated(true);
-        return { success: true };
-      } else {
-        return { success: false, error: response.error || "Login failed" };
-      }
-    } catch (error) {
-      return { success: false, error: "An unexpected error occurred" };
+      const response = await authService.login({ email, password });
+      // The service already sets the token in localStorage
+
+      // Fetch user profile immediately
+      const userData = await authService.getCurrentUser();
+
+      setUser(userData);
+      setIsAuthenticated(true);
+      return { success: true };
+    } catch (error: any) {
+      console.error("Login error:", error);
+      const errorMessage = error.response?.data?.message || "Login failed";
+      return { success: false, error: errorMessage };
     } finally {
       setLoading(false);
     }
   };
 
-  const register = async (email: string, password: string, firstName: string, lastName: string) => {
+  const register = async (email: string, password: string, confirmPassword: string, firstName: string, lastName: string, role: string, acceptTerms: boolean, acceptKvkk: boolean) => {
     setLoading(true);
     try {
-      const response = await mockAuthService.register(email, password, firstName, lastName);
-      if (response.success && response.user) {
-        setUser(response.user);
+      await authService.register({ email, password, confirmPassword, firstName, lastName, role, acceptTerms, acceptKvkk });
+      // Depending on backend, we might be auto-logged in or need to login
+      // Assuming register just creates account, let's auto-login or ask user to login
+      // For now, let's try to login automatically
+      try {
+        const loginResp = await authService.login({ email, password });
+        const userData = await authService.getCurrentUser();
+        setUser(userData);
         setIsAuthenticated(true);
         return { success: true };
-      } else {
-        return { success: false, error: response.error || "Registration failed" };
+      } catch (loginErr) {
+        // If auto-login fails, just return success for registration
+        return { success: true };
       }
-    } catch (error) {
-      return { success: false, error: "An unexpected error occurred" };
+
+    } catch (error: any) {
+      console.error("Registration error:", error);
+      const errorMessage = error.response?.data?.message || "Registration failed";
+      return { success: false, error: errorMessage };
     } finally {
       setLoading(false);
     }
   };
 
   const logout = () => {
-    mockAuthService.logout();
+    authService.logout();
     setUser(null);
     setIsAuthenticated(false);
+    router.push("/auth/login");
   };
 
   return (

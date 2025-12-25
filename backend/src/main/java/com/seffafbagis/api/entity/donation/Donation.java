@@ -80,6 +80,10 @@ public class Donation extends BaseEntity {
     @Column(name = "refund_requested_at")
     private OffsetDateTime refundRequestedAt;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "payment_session_id")
+    private PaymentSession paymentSession;
+
     @OneToOne(mappedBy = "donation", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private Transaction transaction;
 
@@ -238,5 +242,13 @@ public class Donation extends BaseEntity {
 
     public void setReceipt(com.seffafbagis.api.entity.Receipt receipt) {
         this.receipt = receipt;
+    }
+
+    public PaymentSession getPaymentSession() {
+        return paymentSession;
+    }
+
+    public void setPaymentSession(PaymentSession paymentSession) {
+        this.paymentSession = paymentSession;
     }
 }
