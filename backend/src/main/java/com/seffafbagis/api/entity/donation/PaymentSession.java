@@ -1,9 +1,15 @@
 package com.seffafbagis.api.entity.donation;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.seffafbagis.api.entity.base.BaseEntity;
 import com.seffafbagis.api.entity.user.User;
 import com.seffafbagis.api.enums.PaymentSessionStatus;
+import io.hypersistence.utils.hibernate.type.json.JsonType;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.hibernate.annotations.Type;
 
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
@@ -56,6 +62,32 @@ public class PaymentSession extends BaseEntity {
     @OneToOne(mappedBy = "paymentSession", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private Transaction transaction;
 
+    /**
+     * Cart items (before checkout) - stored as JSON
+     */
+    @Type(JsonType.class)
+    @Column(name = "cart_items", columnDefinition = "jsonb")
+    private List<CartItem> cartItems = new ArrayList<>();
+
+    // ==================== CART ITEM EMBEDDABLE ====================
+
+    /**
+     * Cart item before checkout (not yet a Donation).
+     */
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class CartItem {
+        @JsonProperty("campaignId")
+        private java.util.UUID campaignId;
+
+        @JsonProperty("amount")
+        private BigDecimal amount;
+
+        @JsonProperty("currency")
+        private String currency = "TRY";
+    }
+
     // ==================== CONSTRUCTOR ====================
 
     public PaymentSession() {
@@ -92,6 +124,39 @@ public class PaymentSession extends BaseEntity {
         this.totalAmount = donations.stream()
                 .map(Donation::getAmount)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
+    /**
+     * Calculate total from cart items (before checkout).
+     */
+    public BigDecimal calculateCartTotal() {
+        return cartItems.stream()
+                .map(CartItem::getAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
+    /**
+     * Add item to cart.
+     */
+    public void addCartItem(java.util.UUID campaignId, BigDecimal amount, String currency) {
+        cartItems.add(new CartItem(campaignId, amount, currency));
+        this.totalAmount = calculateCartTotal();
+    }
+
+    /**
+     * Remove item from cart by campaign ID.
+     */
+    public void removeCartItem(java.util.UUID campaignId) {
+        cartItems.removeIf(item -> item.getCampaignId().equals(campaignId));
+        this.totalAmount = calculateCartTotal();
+    }
+
+    /**
+     * Clear cart items.
+     */
+    public void clearCart() {
+        cartItems.clear();
+        this.totalAmount = BigDecimal.ZERO;
     }
 
     /**
@@ -203,5 +268,13 @@ public class PaymentSession extends BaseEntity {
 
     public void setTransaction(Transaction transaction) {
         this.transaction = transaction;
+    }
+
+    public List<CartItem> getCartItems() {
+        return cartItems;
+    }
+
+    public void setCartItems(List<CartItem> cartItems) {
+        this.cartItems = cartItems;
     }
 }

@@ -1,5 +1,7 @@
 package com.seffafbagis.api.service.payment;
 
+import com.seffafbagis.api.dto.request.payment.AddCartItemRequest;
+import com.seffafbagis.api.entity.campaign.Campaign;
 import com.seffafbagis.api.entity.donation.Donation;
 import com.seffafbagis.api.entity.donation.PaymentSession;
 import com.seffafbagis.api.entity.user.User;
@@ -7,11 +9,12 @@ import com.seffafbagis.api.enums.DonationStatus;
 import com.seffafbagis.api.enums.PaymentSessionStatus;
 import com.seffafbagis.api.exception.BadRequestException;
 import com.seffafbagis.api.exception.ResourceNotFoundException;
+import com.seffafbagis.api.repository.CampaignRepository;
 import com.seffafbagis.api.repository.DonationRepository;
 import com.seffafbagis.api.repository.PaymentSessionRepository;
 import com.seffafbagis.api.repository.UserRepository;
 import com.seffafbagis.api.security.SecurityUtils;
-import com.seffafbagis.api.service.donation.DonationService;
+import com.seffafbagis.api.service.campaign.CampaignService;
 import com.seffafbagis.api.service.receipt.ReceiptService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -24,10 +27,7 @@ import java.util.UUID;
 
 /**
  * Service for managing payment sessions (shopping cart).
- * Handles cart operations: add, remove, checkout.
- * 
- * @author System
- * @version 1.0
+ * NOW: Stores cart items (campaignId + amount), creates donations at checkout.
  */
 @Service
 @RequiredArgsConstructor
@@ -36,8 +36,9 @@ public class PaymentSessionService {
     private final PaymentSessionRepository paymentSessionRepository;
     private final DonationRepository donationRepository;
     private final UserRepository userRepository;
-    private final DonationService donationService;
+    private final CampaignRepository campaignRepository;
     private final ReceiptService receiptService;
+    private final CampaignService campaignService;
 
     /**
      * Get or create active cart for current user.
@@ -47,14 +48,9 @@ public class PaymentSessionService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
-        PaymentSession session = paymentSessionRepository
+        return paymentSessionRepository
                 .findByUserAndStatus(user, PaymentSessionStatus.PENDING)
                 .orElseGet(() -> createNewSession(user));
-
-        // Force load donations to avoid lazy initialization exception
-        session.getDonations().size();
-
-        return session;
     }
 
     /**
@@ -68,75 +64,46 @@ public class PaymentSessionService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
-        PaymentSession session = paymentSessionRepository
+        return paymentSessionRepository
                 .findByUserAndStatus(user, PaymentSessionStatus.PENDING)
                 .orElseThrow(() -> new ResourceNotFoundException("No active cart session"));
-
-        // Force load donations to avoid lazy initialization exception
-        session.getDonations().size();
-
-        return session;
     }
 
     /**
-     * Add a donation to cart (link it to payment session).
+     * Add item to cart (NOT creating donation yet).
      */
     @Transactional
-    public void addDonationToSession(UUID sessionId, UUID donationId) {
-        PaymentSession session = paymentSessionRepository.findById(sessionId)
-                .orElseThrow(() -> new ResourceNotFoundException("Payment session not found"));
+    public void addItemToCart(UUID userId, AddCartItemRequest request) {
+        // Validate campaign exists
+        Campaign campaign = campaignRepository.findById(request.getCampaignId())
+                .orElseThrow(() -> new ResourceNotFoundException("Campaign not found"));
+
+        PaymentSession session = getOrCreateActiveSession(userId);
 
         if (session.getStatus() != PaymentSessionStatus.PENDING) {
             throw new BadRequestException("Cannot modify non-pending session");
         }
 
-        Donation donation = donationRepository.findById(donationId)
-                .orElseThrow(() -> new ResourceNotFoundException("Donation not found"));
-
-        if (donation.getStatus() != DonationStatus.PENDING) {
-            throw new BadRequestException("Can only add pending donations to cart");
-        }
-
-        // Link donation to session
-        donation.setPaymentSession(session);
-        donationRepository.save(donation);
-
-        // Recalculate total
-        session.recalculateTotalAmount();
+        // Add item to cart
+        session.addCartItem(request.getCampaignId(), request.getAmount(), request.getCurrency());
         paymentSessionRepository.save(session);
     }
 
     /**
-     * Remove a donation from cart.
+     * Remove item from cart.
      */
     @Transactional
-    public void removeDonationFromSession(UUID sessionId, UUID donationId) {
-        PaymentSession session = paymentSessionRepository.findById(sessionId)
-                .orElseThrow(() -> new ResourceNotFoundException("Payment session not found"));
-
-        Donation donation = donationRepository.findById(donationId)
-                .orElseThrow(() -> new ResourceNotFoundException("Donation not found"));
-
-        if (donation.getPaymentSession() == null ||
-                !donation.getPaymentSession().getId().equals(sessionId)) {
-            throw new BadRequestException("Donation not in this session");
-        }
-
-        // Unlink donation
-        donation.setPaymentSession(null);
-        donationRepository.save(donation);
-
-        // Recalculate total
-        session.recalculateTotalAmount();
+    public void removeItemFromCart(UUID userId, UUID campaignId) {
+        PaymentSession session = getOrCreateActiveSession(userId);
+        session.removeCartItem(campaignId);
         paymentSessionRepository.save(session);
     }
 
     /**
-     * Mark session as completed and generate receipts for all donations.
-     * Called after successful payment.
+     * Checkout: Create donations and receipts from cart items.
      */
     @Transactional
-    public void completeSession(UUID sessionId) {
+    public void checkout(UUID sessionId) {
         PaymentSession session = paymentSessionRepository.findById(sessionId)
                 .orElseThrow(() -> new ResourceNotFoundException("Payment session not found"));
 
@@ -144,34 +111,41 @@ public class PaymentSessionService {
             return; // Already completed
         }
 
-        // Mark session as complete
-        session.markAsCompleted();
-        paymentSessionRepository.save(session);
-
-        // Complete all donations and generate receipts
-        List<Donation> donations = session.getDonations();
-        for (Donation donation : donations) {
-            donationService.completeDonation(donation.getId());
-            // completeDonation already calls receiptService.createReceipt()
+        if (session.getCartItems().isEmpty()) {
+            throw new BadRequestException("Cart is empty");
         }
+
+        // Create donation for each cart item
+        for (PaymentSession.CartItem item : session.getCartItems()) {
+            Campaign campaign = campaignRepository.findById(item.getCampaignId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Campaign not found: " + item.getCampaignId()));
+
+            Donation donation = new Donation();
+            donation.setCampaign(campaign);
+            donation.setDonor(session.getUser());
+            donation.setAmount(item.getAmount());
+            donation.setCurrency(item.getCurrency());
+            donation.setPaymentSession(session);
+            donation.setStatus(DonationStatus.COMPLETED); // Already paid (mock)
+            donation.setIsAnonymous(false);
+
+            donation = donationRepository.save(donation);
+
+            // Generate receipt
+            receiptService.createReceipt(donation);
+
+            // Update campaign stats
+            campaignService.incrementDonationStats(campaign.getId(), donation.getAmount());
+        }
+
+        // Mark session as completed and clear cart
+        session.markAsCompleted();
+        session.clearCart();
+        paymentSessionRepository.save(session);
     }
 
     /**
-     * Get user's payment history (completed sessions).
-     */
-    @Transactional(readOnly = true)
-    public List<PaymentSession> getUserPaymentHistory(UUID userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
-
-        return paymentSessionRepository.findByUserAndStatusOrderByCompletedAtDesc(
-                user,
-                PaymentSessionStatus.COMPLETED);
-    }
-
-    /**
-     * Cleanup expired sessions (older than 24 hours and still pending).
-     * Should be called by scheduled job.
+     * Cleanup expired sessions.
      */
     @Transactional
     public void cleanupExpiredSessions() {
@@ -181,12 +155,7 @@ public class PaymentSessionService {
 
         for (PaymentSession session : expiredSessions) {
             session.setStatus(PaymentSessionStatus.EXPIRED);
-
-            // Unlink donations
-            for (Donation donation : session.getDonations()) {
-                donation.setPaymentSession(null);
-            }
-
+            session.clearCart();
             paymentSessionRepository.save(session);
         }
     }
