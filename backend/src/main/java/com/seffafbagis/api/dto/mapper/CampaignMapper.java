@@ -208,6 +208,9 @@ public class CampaignMapper {
         }
 
         response.setProgressPercentage(calculateProgress(entity.getCollectedAmount(), entity.getTargetAmount()));
+
+        response.setRealizationStatus(entity.getRealizationStatus());
+        response.setRealizationDeadline(entity.getRealizationDeadline());
     }
 
     private BigDecimal calculateProgress(BigDecimal collected, BigDecimal target) {

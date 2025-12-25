@@ -9,7 +9,7 @@ import java.util.UUID;
  */
 public class DonationReceiptResponse {
 
-    private UUID id;
+    private Long id;
     private String receiptNumber;
     private UUID donationId;
     private BigDecimal amount;
@@ -24,11 +24,11 @@ public class DonationReceiptResponse {
 
     // Getters and Setters
 
-    public UUID getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(UUID id) {
+    public void setId(Long id) {
         this.id = id;
     }
 

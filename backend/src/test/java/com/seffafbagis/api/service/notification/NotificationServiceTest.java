@@ -26,7 +26,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 
-import com.seffafbagis.api.entity.donation.DonationReceipt;
 import org.springframework.test.util.ReflectionTestUtils;
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
@@ -147,7 +146,7 @@ class NotificationServiceTest {
         donation.setAmount(BigDecimal.TEN);
         donation.setCampaign(campaign);
         donation.setDonor(user);
-        donation.setReceipt(new DonationReceipt()); // Trigger receipt email condition
+        donation.setReceipt(new com.seffafbagis.api.entity.Receipt()); // Trigger receipt email condition
 
         when(userRepository.getReferenceById(userId)).thenReturn(user);
 

@@ -33,7 +33,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         "app.encryption.secret-key=12345678901234567890123456789012",
         "spring.jpa.hibernate.ddl-auto=create-drop",
         "spring.jpa.generate-ddl=true",
-        "spring.datasource.url=jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE"
+        "spring.datasource.url=jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE",
+        "iyzico.api-key=dummy-key",
+        "iyzico.secret-key=dummy-secret",
+        "iyzico.base-url=https://sandbox-api.iyzipay.com",
+        "iyzico.callback-url=http://localhost:8080/api/v1/payments/callback",
+        "app.frontend-url=http://localhost:3000"
 })
 @Transactional
 class CategoryIntegrationTest {
@@ -65,10 +70,13 @@ class CategoryIntegrationTest {
     private com.seffafbagis.api.service.notification.EmailService emailService;
 
     @org.springframework.boot.test.mock.mockito.MockBean
-    private com.seffafbagis.api.service.interfaces.ICampaignService campaignService;
+    private com.seffafbagis.api.service.campaign.CampaignService campaignService;
 
     @org.springframework.boot.test.mock.mockito.MockBean
-    private com.seffafbagis.api.service.interfaces.IOrganizationService organizationService;
+    private com.seffafbagis.api.service.organization.OrganizationService organizationService;
+
+    @org.springframework.boot.test.mock.mockito.MockBean
+    private org.springframework.boot.test.web.client.TestRestTemplate testRestTemplate;
 
     @BeforeEach
     void setUp() {

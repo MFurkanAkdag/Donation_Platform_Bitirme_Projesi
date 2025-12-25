@@ -43,4 +43,7 @@ public class CampaignResponse {
     public BigDecimal getCurrentAmount() {
         return currentAmount != null ? currentAmount : collectedAmount;
     }
+
+    private String realizationStatus;
+    private LocalDateTime realizationDeadline;
 }

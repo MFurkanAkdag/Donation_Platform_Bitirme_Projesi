@@ -38,6 +38,11 @@ public class PaymentController {
         return ResponseEntity.ok(paymentService.initializePayment(request));
     }
 
+    @PostMapping("/direct")
+    public ResponseEntity<PaymentResultResponse> processDirectPayment(@Valid @RequestBody PaymentRequest request) {
+        return ResponseEntity.ok(paymentService.processDirectPayment(request));
+    }
+
     @PostMapping(value = "/callback/3ds", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
     public void handle3DSCallback(
             @RequestParam("status") String status,

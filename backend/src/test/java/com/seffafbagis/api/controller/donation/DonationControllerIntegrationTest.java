@@ -2,7 +2,6 @@ package com.seffafbagis.api.controller.donation;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.seffafbagis.api.dto.request.donation.CreateDonationRequest;
-import com.seffafbagis.api.service.donation.DonationReceiptService;
 import com.seffafbagis.api.service.donation.DonationService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,9 +43,7 @@ public class DonationControllerIntegrationTest {
     private com.seffafbagis.api.security.JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
 
     @MockBean
-    private com.seffafbagis.api.service.donation.DonationReceiptService donationReceiptService; // Needed as it is
-                                                                                                // injected in
-                                                                                                // controller
+    private com.seffafbagis.api.repository.OrganizationRepository organizationRepository;
 
     @Autowired
     private ObjectMapper objectMapper;

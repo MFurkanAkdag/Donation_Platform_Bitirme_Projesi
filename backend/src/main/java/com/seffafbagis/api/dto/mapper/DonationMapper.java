@@ -5,7 +5,6 @@ import com.seffafbagis.api.dto.response.donation.*;
 import com.seffafbagis.api.entity.campaign.Campaign;
 import com.seffafbagis.api.entity.category.DonationType;
 import com.seffafbagis.api.entity.donation.Donation;
-import com.seffafbagis.api.entity.donation.DonationReceipt;
 import com.seffafbagis.api.entity.user.User;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Component;
@@ -81,20 +80,20 @@ public class DonationMapper {
         return response;
     }
 
-    public DonationReceiptResponse toReceiptResponse(DonationReceipt receipt) {
+    public DonationReceiptResponse toReceiptResponse(com.seffafbagis.api.entity.Receipt receipt) {
         if (receipt == null)
             return null;
 
         DonationReceiptResponse response = new DonationReceiptResponse();
         response.setId(receipt.getId());
         response.setDonationId(receipt.getDonation().getId());
-        response.setReceiptNumber(receipt.getReceiptNumber());
-        response.setGeneratedAt(receipt.getIssuedAt());
+        response.setReceiptNumber(receipt.getBarcodeData());
 
-        // Map redundant fields from receipt if they exist, or fetch from
-        // donation/relations
-        // Assuming Receipt entity might store snapshot data, but for now using
-        // relations
+        // Convert LocalDateTime to OffsetDateTime (assuming UTC/System Default)
+        if (receipt.getCreatedAt() != null) {
+            response.setGeneratedAt(receipt.getCreatedAt().atZone(java.time.ZoneId.systemDefault()).toOffsetDateTime());
+        }
+
         Donation donation = receipt.getDonation();
 
         if (Boolean.TRUE.equals(donation.getIsAnonymous())) {

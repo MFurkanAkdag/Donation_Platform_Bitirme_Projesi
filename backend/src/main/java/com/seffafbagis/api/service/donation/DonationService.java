@@ -9,7 +9,6 @@ import com.seffafbagis.api.dto.response.donation.DonorListResponse;
 import com.seffafbagis.api.entity.campaign.Campaign;
 import com.seffafbagis.api.entity.category.DonationType;
 import com.seffafbagis.api.entity.donation.Donation;
-import com.seffafbagis.api.entity.donation.DonationReceipt;
 import com.seffafbagis.api.entity.donation.Transaction;
 import com.seffafbagis.api.entity.user.User;
 import com.seffafbagis.api.enums.CampaignStatus;
@@ -52,7 +51,7 @@ public class DonationService {
     private final DonationTypeRepository donationTypeRepository;
     private final DonationMapper donationMapper;
     private final CampaignService campaignService;
-    private final DonationReceiptService donationReceiptService;
+    private final com.seffafbagis.api.service.receipt.ReceiptService receiptService;
     private final NotificationService notificationService;
     private final SystemSettingService systemSettingService;
     private final ApplicationEventPublisher eventPublisher;
@@ -129,7 +128,7 @@ public class DonationService {
         campaignService.incrementDonationStats(donation.getCampaign().getId(), donation.getAmount());
 
         // Generate receipt
-        donationReceiptService.generateReceipt(donation);
+        receiptService.createReceipt(donation);
 
         // Publish donation completed event (listeners handle notifications)
         UUID triggeredBy = SecurityUtils.getCurrentUserId().orElse(null);

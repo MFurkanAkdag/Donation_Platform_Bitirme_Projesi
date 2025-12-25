@@ -450,4 +450,20 @@ public class CampaignService implements ICampaignService {
             }
         }
     }
+
+    @Transactional
+    public void updateRealizationStatus(UUID campaignId, String statusStr, LocalDateTime deadline) {
+        Campaign campaign = findCampaignById(campaignId);
+        verifyOwner(campaign);
+
+        if (campaign.getStatus() == CampaignStatus.DRAFT || campaign.getStatus() == CampaignStatus.REJECTED) {
+            throw new BadRequestException("Cannot track realization for DRAFT or REJECTED campaigns");
+        }
+
+        campaign.setRealizationStatus(statusStr);
+        if (deadline != null) {
+            campaign.setRealizationDeadline(deadline);
+        }
+        campaignRepository.save(campaign);
+    }
 }

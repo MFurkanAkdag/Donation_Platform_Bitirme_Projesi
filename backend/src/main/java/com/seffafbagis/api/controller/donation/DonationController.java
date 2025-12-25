@@ -10,7 +10,6 @@ import com.seffafbagis.api.entity.organization.Organization;
 import com.seffafbagis.api.exception.ResourceNotFoundException;
 import com.seffafbagis.api.repository.OrganizationRepository;
 import com.seffafbagis.api.security.SecurityUtils;
-import com.seffafbagis.api.service.donation.DonationReceiptService;
 import com.seffafbagis.api.service.donation.DonationService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -31,7 +30,6 @@ import java.util.UUID;
 public class DonationController {
 
     private final DonationService donationService;
-    private final DonationReceiptService donationReceiptService;
     private final OrganizationRepository organizationRepository;
 
     // Public donor list for a campaign

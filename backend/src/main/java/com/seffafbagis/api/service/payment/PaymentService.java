@@ -31,12 +31,11 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @Slf4j
 public class PaymentService {
-    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(PaymentService.class);
-
     private final IyzicoService iyzicoService;
     private final TransactionService transactionService;
     private final DonationRepository donationRepository;
     private final UserRepository userRepository;
+    private final com.seffafbagis.api.service.receipt.ReceiptService receiptService;
 
     @Transactional
     public ThreeDSInitResponse initializePayment(PaymentRequest request) {
@@ -84,26 +83,48 @@ public class PaymentService {
             throw new PaymentException("This donation is already paid", "ALREADY_PAID", false);
         }
 
-        com.iyzipay.model.Payment payment = iyzicoService.createDirectPayment(request, donation, user);
-        Transaction transaction = transactionService.createTransaction(donation, request, payment, false);
+        // --- MOCK PAYMENT & RECEIPT LOGIC START (For Phase 18.0) ---
+        // Basic Mock Check:
+        // 5100... -> INVALID_BALANCE
+        // 1234... -> INVALID_CARD
+        // Others -> SUCCESS
 
-        if ("success".equals(payment.getStatus())) {
-            donation.setStatus(DonationStatus.COMPLETED);
-            donationRepository.save(donation);
+        String cardNumber = request.getCardNumber() != null ? request.getCardNumber().replaceAll("\\s", "") : "";
 
-            return PaymentResultResponse.builder()
-                    .success(true)
-                    .donationId(donation.getId())
-                    .transactionId(transaction.getId())
-                    .status("COMPLETED")
-                    .message("Payment successful")
-                    .build();
-        } else {
+        if (cardNumber.startsWith("5100")) {
             donation.setStatus(DonationStatus.FAILED);
             donationRepository.save(donation);
-
-            throw new PaymentException(payment.getErrorMessage(), payment.getErrorCode(), false);
+            throw new PaymentException("Insufficient Balance", "INSUFFICIENT_BALANCE", false);
         }
+
+        if (cardNumber.length() < 13) { // Simple fake validation
+            donation.setStatus(DonationStatus.FAILED);
+            donationRepository.save(donation);
+            throw new PaymentException("Invalid Card Number", "INVALID_CARD", false);
+        }
+
+        // Mock Success
+        donation.setStatus(DonationStatus.COMPLETED);
+        donationRepository.save(donation);
+
+        // Generate Receipt/Makbuz
+        com.seffafbagis.api.entity.Receipt receipt = receiptService.createReceipt(donation);
+
+        // Simulated Transaction
+        // transactionService.createMockTransaction(donation, "MOCK-TRX-" +
+        // System.currentTimeMillis());
+        // We can reuse existing logic if possible or skip explicit transaction log if
+        // acceptable for mock
+        // For now, let's keep it simple as prompt requested.
+
+        return PaymentResultResponse.builder()
+                .success(true)
+                .donationId(donation.getId())
+                .transactionId(UUID.randomUUID())
+                .status("COMPLETED")
+                .message("Payment successful (Mock)")
+                .build();
+        // --- MOCK PAYMENT LOGIC END ---
     }
 
     @Transactional

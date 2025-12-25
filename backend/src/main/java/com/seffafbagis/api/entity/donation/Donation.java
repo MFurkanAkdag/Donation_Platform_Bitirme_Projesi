@@ -84,7 +84,7 @@ public class Donation extends BaseEntity {
     private Transaction transaction;
 
     @OneToOne(mappedBy = "donation", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private DonationReceipt receipt;
+    private com.seffafbagis.api.entity.Receipt receipt;
 
     // Getters and Setters
 
@@ -232,11 +232,11 @@ public class Donation extends BaseEntity {
         this.transaction = transaction;
     }
 
-    public DonationReceipt getReceipt() {
+    public com.seffafbagis.api.entity.Receipt getReceipt() {
         return receipt;
     }
 
-    public void setReceipt(DonationReceipt receipt) {
+    public void setReceipt(com.seffafbagis.api.entity.Receipt receipt) {
         this.receipt = receipt;
     }
 }

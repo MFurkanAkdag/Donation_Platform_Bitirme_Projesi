@@ -110,4 +110,9 @@ public class Campaign extends BaseEntity {
     @OneToMany(mappedBy = "campaign", cascade = CascadeType.ALL, orphanRemoval = true)
     private java.util.List<CampaignDonationType> donationTypes;
 
+    @Column(name = "realization_deadline")
+    private LocalDateTime realizationDeadline;
+
+    @Column(name = "realization_status")
+    private String realizationStatus = "NOT_STARTED";
 }

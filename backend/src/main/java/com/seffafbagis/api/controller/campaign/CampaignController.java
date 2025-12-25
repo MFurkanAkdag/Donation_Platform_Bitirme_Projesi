@@ -3,6 +3,7 @@ package com.seffafbagis.api.controller.campaign;
 import com.seffafbagis.api.dto.request.campaign.CampaignSearchRequest;
 import com.seffafbagis.api.dto.request.campaign.CreateCampaignRequest;
 import com.seffafbagis.api.dto.request.campaign.UpdateCampaignRequest;
+import com.seffafbagis.api.dto.request.campaign.UpdateRealizationRequest;
 import com.seffafbagis.api.dto.response.campaign.CampaignDetailResponse;
 import com.seffafbagis.api.dto.response.campaign.CampaignListResponse;
 import com.seffafbagis.api.dto.response.campaign.CampaignResponse;
@@ -143,5 +144,14 @@ public class CampaignController {
     public ApiResponse<Void> completeCampaign(@PathVariable UUID id) {
         campaignService.completeCampaign(id);
         return ApiResponse.success("Campaign completed");
+    }
+
+    @PutMapping("/{id}/realization")
+    @PreAuthorize("hasRole('FOUNDATION')")
+    @Operation(summary = "Update campaign realization status")
+    public ApiResponse<Void> updateRealizationStatus(@PathVariable UUID id,
+            @RequestBody UpdateRealizationRequest request) {
+        campaignService.updateRealizationStatus(id, request.getStatus(), request.getDeadline());
+        return ApiResponse.success("Realization status updated");
     }
 }

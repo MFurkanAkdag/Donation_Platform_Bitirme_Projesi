@@ -56,9 +56,11 @@ public class DonationServiceTest {
     @Mock
     private CampaignService campaignService;
     @Mock
-    private DonationReceiptService donationReceiptService;
+    private com.seffafbagis.api.service.receipt.ReceiptService receiptService;
     @Mock
     private NotificationService notificationService;
+    @Mock
+    private org.springframework.context.ApplicationEventPublisher eventPublisher;
     @Mock
     private SystemSettingService systemSettingService;
 
@@ -71,6 +73,7 @@ public class DonationServiceTest {
 
     @BeforeEach
     void setUp() {
+        SecurityContextHolder.clearContext(); // Ensure clean state
         campaign = new Campaign();
         campaign.setId(UUID.randomUUID());
         campaign.setStatus(CampaignStatus.ACTIVE);
@@ -88,6 +91,14 @@ public class DonationServiceTest {
 
         // Mock System Settings
         when(systemSettingService.getSettingValueOrDefault(eq("min_donation_amount"), anyString())).thenReturn("10");
+
+        // Mock Receipt Service
+        when(receiptService.createReceipt(any())).thenAnswer(invocation -> {
+            Donation d = invocation.getArgument(0);
+            com.seffafbagis.api.entity.Receipt r = new com.seffafbagis.api.entity.Receipt();
+            r.setDonation(d);
+            return r;
+        });
     }
 
     @Test
@@ -100,6 +111,7 @@ public class DonationServiceTest {
 
         assertNotNull(donationId);
         verify(donationRepository).save(any(Donation.class));
+        verify(eventPublisher).publishEvent(any(com.seffafbagis.api.event.DonationCreatedEvent.class));
     }
 
     @Test
@@ -135,21 +147,23 @@ public class DonationServiceTest {
 
         assertEquals(DonationStatus.COMPLETED, donation.getStatus());
         verify(campaignService).incrementDonationStats(campaign.getId(), donation.getAmount());
-        verify(donationReceiptService).generateReceipt(donation);
-        verify(notificationService, atLeastOnce()).sendNotification(any(), anyString(), anyString());
+        verify(receiptService).createReceipt(donation);
+        verify(eventPublisher).publishEvent(any(com.seffafbagis.api.event.DonationCompletedEvent.class));
     }
 
     // Helper to mock security context
     private void mockSecurityContext(UUID userId) {
         Authentication authentication = mock(Authentication.class);
         SecurityContext securityContext = mock(SecurityContext.class);
+
+        com.seffafbagis.api.security.CustomUserDetails userDetails = new com.seffafbagis.api.security.CustomUserDetails(
+                userId, "test@example.com", "pass", com.seffafbagis.api.enums.UserRole.DONOR,
+                com.seffafbagis.api.enums.UserStatus.ACTIVE, true);
+
         when(securityContext.getAuthentication()).thenReturn(authentication);
-        when(authentication.getPrincipal()).thenReturn(userId.toString());
-        // Depending on how SecurityUtils works, we might need to mock SecurityUtils
-        // static methods
-        // But since we can't easily mock static methods with default Mockito,
-        // and SecurityUtils might rely on SecurityContextHolder, we try establishing
-        // context.
+        when(authentication.isAuthenticated()).thenReturn(true);
+        when(authentication.getPrincipal()).thenReturn(userDetails);
+
         SecurityContextHolder.setContext(securityContext);
     }
 

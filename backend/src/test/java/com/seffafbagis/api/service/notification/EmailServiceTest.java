@@ -84,8 +84,10 @@ class EmailServiceTest {
         Donation donation = new Donation();
         donation.setDonor(donor);
         donation.setCampaign(campaign);
+        com.seffafbagis.api.entity.Receipt receipt = new com.seffafbagis.api.entity.Receipt();
+        receipt.setBarcodeData("12345");
+        donation.setReceipt(receipt);
         donation.setAmount(BigDecimal.TEN);
-        donation.setReceipt(new DonationReceipt());
         ReflectionTestUtils.setField(donation, "createdAt", OffsetDateTime.now());
 
         emailService.sendDonationReceiptEmail(donation);

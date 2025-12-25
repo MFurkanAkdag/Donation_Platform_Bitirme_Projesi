@@ -59,7 +59,7 @@ public class AdminOrganizationService {
 
     public AdminOrganizationResponse verifyOrganization(UUID id, VerifyOrganizationRequest request, UUID adminId) {
         String decision = request.getDecision();
-        String status = "APPROVE".equals(decision) ? "VERIFIED" : "REJECTED";
+        String status = "APPROVE".equals(decision) ? "APPROVED" : "REJECTED";
 
         if ("REJECTED".equals(status) && (request.getReason() == null || request.getReason().trim().isEmpty())) {
             throw new ValidationException("Reason is required for rejection");
@@ -69,7 +69,7 @@ public class AdminOrganizationService {
         organizationService.updateVerificationStatus(id, status, request.getReason(), adminId);
 
         // Audit Log
-        String description = "Organization " + (status.equals("VERIFIED") ? "verified" : "rejected") +
+        String description = "Organization " + (status.equals("APPROVED") ? "verified" : "rejected") +
                 ". Reason: " + request.getReason();
         auditLogService.logAction(adminId, "VERIFY_ORGANIZATION", description, id.toString());
 
