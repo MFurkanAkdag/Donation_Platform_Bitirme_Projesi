@@ -13,7 +13,7 @@ export default function CheckoutPage() {
   const router = useRouter();
   const { cart, getTotalAmount, clearCart } = useCart();
   const [isProcessing, setIsProcessing] = useState(false);
-  
+
   const [formData, setFormData] = useState({
     fullName: "",
     email: "",
@@ -56,12 +56,56 @@ export default function CheckoutPage() {
 
     setIsProcessing(true);
 
-    // Simulate payment processing
-    setTimeout(() => {
-      setIsProcessing(false);
+    try {
+      // Guest users always use the guest checkout API
+      // TODO: When authentication is implemented, check isAuthenticated() here
+
+      // Parse expiry date (MM/YY format)
+      const [expireMonth, expireYear] = formData.expiryDate.split('/');
+      const fullYear = expireYear.length === 2 ? `20${expireYear}` : expireYear;
+
+      // Prepare cart items for API
+      const cartItems = cartWithCampaigns.map(item => ({
+        campaignId: item.campaignId,
+        amount: item.amount,
+        currency: 'TRY'
+      }));
+
+      // Call guest checkout API
+      const { guestDonationService } = await import('@/services/guestDonationService');
+
+      const response = await guestDonationService.checkout({
+        guestEmail: formData.email,
+        guestName: formData.fullName,
+        guestPhone: formData.phone || undefined,
+        cartItems,
+        paymentDetails: {
+          cardHolderName: formData.cardName,
+          cardNumber: formData.cardNumber.replace(/\s/g, ''), // Remove spaces
+          expireMonth: expireMonth.padStart(2, '0'),
+          expireYear: fullYear,
+          cvc: formData.cvv,
+          saveCard: false
+        },
+        isAnonymous: false
+      });
+
+      // Clear cart on success
       clearCart();
+
+      // Store receipt info in sessionStorage for success page
+      sessionStorage.setItem('donationReceipts', JSON.stringify(response.donations));
+      sessionStorage.setItem('isGuestDonation', 'true');
+
+      // Redirect to success page
       router.push("/checkout/success");
-    }, 2000);
+
+    } catch (error: any) {
+      console.error('Checkout error:', error);
+      alert(error.response?.data?.message || 'Payment failed. Please try again.');
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   if (cart.length === 0) {

@@ -1,7 +1,64 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Button } from "@heroui/button";
 
+interface ReceiptInfo {
+  donationId: string;
+  receiptId: string;
+  campaignTitle: string;
+  amount: number;
+  receiptNumber: string;
+  receiptPdfUrl: string;
+}
+
 export default function CheckoutSuccessPage() {
+  const [receipts, setReceipts] = useState<ReceiptInfo[]>([]);
+  const [isGuest, setIsGuest] = useState(false);
+  const [downloaded, setDownloaded] = useState(false);
+
+  useEffect(() => {
+    // Check if this is a guest donation
+    const isGuestDonation = sessionStorage.getItem('isGuestDonation') === 'true';
+    setIsGuest(isGuestDonation);
+
+    // Get receipt info from sessionStorage
+    const receiptsData = sessionStorage.getItem('donationReceipts');
+    if (receiptsData) {
+      const parsedReceipts = JSON.parse(receiptsData);
+      setReceipts(parsedReceipts);
+
+      // Auto-download for guest users
+      if (isGuestDonation && !downloaded) {
+        // Download all receipts automatically for guest
+        parsedReceipts.forEach((receipt: ReceiptInfo, index: number) => {
+          setTimeout(() => {
+            downloadReceipt(receipt);
+          }, index * 500); // Stagger downloads by 500ms
+        });
+        setDownloaded(true);
+      }
+    }
+
+    // Clean up sessionStorage after component mounts
+    return () => {
+      sessionStorage.removeItem('donationReceipts');
+      sessionStorage.removeItem('isGuestDonation');
+    };
+  }, [downloaded]);
+
+  const downloadReceipt = (receipt: ReceiptInfo) => {
+    // Create download link
+    const link = document.createElement('a');
+    link.href = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}${receipt.receiptPdfUrl}`;
+    link.download = `receipt-${receipt.receiptNumber}.pdf`;
+    link.target = '_blank';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center">
       <div className="max-w-2xl mx-auto px-4 py-16 text-center">
@@ -20,6 +77,37 @@ export default function CheckoutSuccessPage() {
         <p className="text-xl text-gray-600 mb-8">
           Your donation has been successfully processed
         </p>
+
+        {/* Guest Receipt Download Section */}
+        {isGuest && receipts.length > 0 && (
+          <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-6 mb-8">
+            <div className="text-4xl mb-3">📄</div>
+            <h3 className="text-xl font-bold text-gray-900 mb-2">
+              Your Receipt{receipts.length > 1 ? 's' : ''}
+            </h3>
+            <p className="text-gray-700 mb-4">
+              {downloaded
+                ? `${receipts.length} receipt${receipts.length > 1 ? 's have' : ' has'} been downloaded automatically!`
+                : 'Downloading your receipts...'}
+            </p>
+
+            {/* Manual download buttons */}
+            <div className="space-y-2">
+              {receipts.map((receipt) => (
+                <Button
+                  key={receipt.receiptId}
+                  onClick={() => downloadReceipt(receipt)}
+                  variant="bordered"
+                  color="primary"
+                  size="sm"
+                  className="w-full"
+                >
+                  📥 Re-download: {receipt.campaignTitle} ({receipt.amount} TRY)
+                </Button>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Details */}
         <div className="bg-white rounded-lg shadow-sm p-8 mb-8 text-left">
