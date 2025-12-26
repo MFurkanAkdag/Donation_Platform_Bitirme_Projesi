@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bağış Makbuzu - Seffaf Bağış Platformu</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #f5f5f5;
+            padding: 40px 20px;
+        }
+
+        .pdf-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            border-radius: 0;
+        }
+
+        .receipt-page {
+            background: white;
+            padding: 60px;
+            min-height: 1100px;
+            position: relative;
+        }
+
+        /* Header */
+        .receipt-header {
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 30px;
+            margin-bottom: 40px;
+        }
+
+        .logo-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 20px;
+        }
+
+        .logo {
+            font-size: 32px;
+            font-weight: 700;
+            color: #667eea;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .receipt-number {
+            text-align: right;
+        }
+
+        .receipt-number .label {
+            font-size: 12px;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .receipt-number .number {
+            font-size: 24px;
+            font-weight: 700;
+            color: #333;
+            font-family: 'Courier New', monospace;
+        }
+
+        .receipt-title {
+            font-size: 28px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .receipt-subtitle {
+            font-size: 14px;
+            color: #666;
+        }
+
+        /* Info Sections */
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            margin-bottom: 40px;
+        }
+
+        .info-section {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .info-section h3 {
+            font-size: 14px;
+            color: #667eea;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+
+        .info-row .label {
+            color: #666;
+            font-weight: 500;
+        }
+
+        .info-row .value {
+            color: #333;
+            font-weight: 600;
+            text-align: right;
+        }
+
+        /* Campaign Details */
+        .campaign-section {
+            background: linear-gradient(135deg, #667eea10 0%, #764ba210 100%);
+            padding: 30px;
+            border-radius: 12px;
+            margin-bottom: 40px;
+            border: 2px solid #667eea20;
+        }
+
+        .campaign-section h3 {
+            font-size: 18px;
+            color: #333;
+            margin-bottom: 20px;
+            font-weight: 700;
+        }
+
+        .campaign-item {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .campaign-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .campaign-name {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .campaign-org {
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        .campaign-amount-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 10px;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .campaign-amount-row .label {
+            font-size: 13px;
+            color: #666;
+        }
+
+        .campaign-amount-row .amount {
+            font-size: 20px;
+            font-weight: 700;
+            color: #00b894;
+        }
+
+        /* Total Amount */
+        .total-section {
+            background: #667eea;
+            color: white;
+            padding: 25px 30px;
+            border-radius: 12px;
+            margin-bottom: 40px;
+        }
+
+        .total-section .total-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .total-section .label {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .total-section .amount {
+            font-size: 36px;
+            font-weight: 700;
+        }
+
+        /* Barcode Section */
+        .barcode-section {
+            text-align: center;
+            padding: 30px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            margin-bottom: 40px;
+        }
+
+        .barcode-placeholder {
+            background: white;
+            padding: 20px;
+            border: 2px dashed #ccc;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 24px;
+            letter-spacing: 3px;
+            color: #333;
+        }
+
+        .barcode-label {
+            font-size: 12px;
+            color: #666;
+        }
+
+        /* Tax Notice */
+        .tax-notice {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+        }
+
+        .tax-notice h4 {
+            font-size: 14px;
+            font-weight: 700;
+            color: #856404;
+            margin-bottom: 8px;
+        }
+
+        .tax-notice p {
+            font-size: 13px;
+            color: #856404;
+            line-height: 1.6;
+        }
+
+        /* Footer */
+        .receipt-footer {
+            border-top: 2px solid #e0e0e0;
+            padding-top: 30px;
+            margin-top: 40px;
+        }
+
+        .footer-section {
+            margin-bottom: 20px;
+        }
+
+        .footer-section h4 {
+            font-size: 13px;
+            color: #667eea;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .footer-section p {
+            font-size: 12px;
+            color: #666;
+            line-height: 1.6;
+        }
+
+        .verification-box {
+            background: #e8f5e9;
+            border: 2px solid #4caf50;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .verification-box .icon {
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+
+        .verification-box .text {
+            font-size: 12px;
+            color: #2e7d32;
+            font-weight: 600;
+        }
+
+        .verification-box .url {
+            font-size: 11px;
+            color: #666;
+            font-family: 'Courier New', monospace;
+            margin-top: 5px;
+        }
+
+        /* Print optimizations */
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+
+            .pdf-container {
+                box-shadow: none;
+                max-width: 100%;
+            }
+        }
+
+        .timestamp {
+            font-size: 11px;
+            color: #999;
+            text-align: right;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="pdf-container">
+        <div class="receipt-page">
+            <!-- Header -->
+            <div class="receipt-header">
+                <div class="logo-section">
+                    <div class="logo">
+                        <span>🎁</span>
+                        <span>Seffaf Bağış</span>
+                    </div>
+                    <div class="receipt-number">
+                        <div class="label">Makbuz No</div>
+                        <div class="number">RCP-2025-000142</div>
+                    </div>
+                </div>
+                <h1 class="receipt-title">Bağış Makbuzu</h1>
+                <p class="receipt-subtitle">Bu belge, platformumuz üzerinden gerçekleştirdiğiniz bağışın resmi
+                    makbuzudur.</p>
+            </div>
+
+            <!-- Donor and Donation Info -->
+            <div class="info-grid">
+                <div class="info-section">
+                    <h3>Bağışçı Bilgileri</h3>
+                    <div class="info-row">
+                        <span class="label">Ad Soyad:</span>
+                        <span class="value">Ahmet Yılmaz</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="label">E-posta:</span>
+                        <span class="value">ahmet.yilmaz@gmail.com</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="label">Telefon:</span>
+                        <span class="value">+90 555 123 45 67</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="label">Bağış Türü:</span>
+                        <span class="value">Online Ödeme</span>
+                    </div>
+                </div>
+
+                <div class="info-section">
+                    <h3>Bağış Detayları</h3>
+                    <div class="info-row">
+                        <span class="label">Tarih:</span>
+                        <span class="value">25 Aralık 2025</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="label">Saat:</span>
+                        <span class="value">20:43</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="label">İşlem No:</span>
+                        <span class="value">TXN-89776321</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="label">Durum:</span>
+                        <span class="value">✅ Onaylandı</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Campaign Details -->
+            <div class="campaign-section">
+                <h3>📌 Desteklenen Kampanyalar</h3>
+
+                <div class="campaign-item">
+                    <div class="campaign-name">Kırsal Bölgelerde Okul Yapımı - Afrika</div>
+                    <div class="campaign-org">🏢 Eğitim Vakfı | 🌍 Kenya</div>
+                    <div class="campaign-amount-row">
+                        <span class="label">Bağış Tutarı</span>
+                        <span class="amount">1.000,00 TRY</span>
+                    </div>
+                </div>
+
+                <div class="campaign-item">
+                    <div class="campaign-name">Temiz Su Kuyusu Projesi</div>
+                    <div class="campaign-org">🏢 Su ve Sağlık Derneği | 🌍 Uganda</div>
+                    <div class="campaign-amount-row">
+                        <span class="label">Bağış Tutarı</span>
+                        <span class="amount">500,00 TRY</span>
+                    </div>
+                </div>
+
+                <div class="campaign-item">
+                    <div class="campaign-name">Yetim Çocuklar için Gıda Yardımı</div>
+                    <div class="campaign-org">🏢 İnsani Yardım Vakfı | 🌍 Somali</div>
+                    <div class="campaign-amount-row">
+                        <span class="label">Bağış Tutarı</span>
+                        <span class="amount">250,00 TRY</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Total Amount -->
+            <div class="total-section">
+                <div class="total-row">
+                    <span class="label">TOPLAM BAĞIŞ TUTARI</span>
+                    <span class="amount">1.750,00 TRY</span>
+                </div>
+            </div>
+
+            <!-- Barcode -->
+            <div class="barcode-section">
+                <div class="barcode-placeholder">
+                    |||| || |||| |||||| |||| || ||||
+                </div>
+                <div class="barcode-label">Doğrulama Kodu: RCP-2025-000142</div>
+            </div>
+
+            <!-- Tax Notice -->
+            <div class="tax-notice">
+                <h4>⚠️ Vergi İndirimi Hakkında Bilgilendirme</h4>
+                <p>
+                    Bu bağış, Gelir Vergisi Kanunu'nun 89. maddesi kapsamında yıllık gelir vergisi beyannamenizde
+                    indirim konusu yapılabilir.
+                    Vergi indiriminden yararlanmak için bu makbuzu muhafaza ediniz ve yıllık beyannamenizde beyan
+                    ediniz.
+                </p>
+            </div>
+
+            <!-- Footer -->
+            <div class="receipt-footer">
+                <div class="footer-section">
+                    <h4>Platform Bilgileri</h4>
+                    <p>
+                        <strong>Seffaf Bağış Platformu A.Ş.</strong><br>
+                        Adres: Atatürk Bulvarı No: 123, Çankaya, Ankara<br>
+                        Vergi Dairesi: Çankaya V.D. | Vergi No: 1234567890<br>
+                        E-posta: destek@seffafbagis.org | Tel: +90 312 456 78 90
+                    </p>
+                </div>
+
+                <div class="footer-section">
+                    <h4>Önemli Notlar</h4>
+                    <p>
+                        • Bu makbuz elektronik ortamda oluşturulmuş olup yasal geçerliliğe sahiptir.<br>
+                        • Bağışınız doğrudan belirlediğiniz kampanyalara aktarılacaktır.<br>
+                        • Kampanya ilerlemesini platformumuzdan takip edebilirsiniz.<br>
+                        • Sorularınız için destek@seffafbagis.org adresine yazabilirsiniz.
+                    </p>
+                </div>
+
+                <!-- Verification Box -->
+                <div class="verification-box">
+                    <div class="icon">🔐</div>
+                    <div class="text">Bu makbuz dijital olarak imzalanmış ve doğrulanmıştır</div>
+                    <div class="url">seffafbagis.org/verify/RCP-2025-000142</div>
+                </div>
+
+                <div class="timestamp">
+                    Bu makbuz 25 Aralık 2025 tarihinde saat 20:43'te otomatik olarak oluşturulmuştur.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Auto-print functionality (optional)
+        // window.onload = function() { window.print(); }
+    </script>
+</body>
+
+</html>

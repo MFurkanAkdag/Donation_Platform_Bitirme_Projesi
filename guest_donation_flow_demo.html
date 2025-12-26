@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guest Donation Flow Demo - Seffaf Bağış</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            color: white;
+            text-align: center;
+            margin-bottom: 40px;
+            font-size: 2.5rem;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .flow-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 30px;
+            margin-bottom: 50px;
+        }
+
+        .step-card {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            position: relative;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .step-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .step-number {
+            position: absolute;
+            top: -15px;
+            left: 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .step-card h2 {
+            color: #333;
+            margin-bottom: 15px;
+            margin-top: 20px;
+            font-size: 1.4rem;
+        }
+
+        .step-card p {
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+
+        .code-block {
+            background: #f5f5f5;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            margin: 15px 0;
+        }
+
+        .highlight {
+            background: #fff3cd;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 600;
+            color: #856404;
+        }
+
+        .user-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .guest {
+            background: #ffeaa7;
+            color: #d63031;
+        }
+
+        .logged-in {
+            background: #dfe6e9;
+            color: #0984e3;
+        }
+
+        .feature-list {
+            list-style: none;
+            margin: 15px 0;
+        }
+
+        .feature-list li {
+            padding: 8px 0;
+            padding-left: 25px;
+            position: relative;
+            color: #555;
+        }
+
+        .feature-list li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #00b894;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        .api-endpoint {
+            background: #2d3436;
+            color: #00ff88;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            margin: 10px 0;
+            display: inline-block;
+        }
+
+        .comparison-table {
+            width: 100%;
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            margin-top: 30px;
+        }
+
+        .comparison-table h2 {
+            color: #333;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th,
+        td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-weight: 600;
+        }
+
+        tr:hover {
+            background: #f8f9fa;
+        }
+
+        .check {
+            color: #00b894;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        .arrow {
+            font-size: 2rem;
+            color: white;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .mockup {
+            background: #f8f9fa;
+            border: 2px dashed #ddd;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 15px 0;
+            font-size: 0.9rem;
+        }
+
+        .mockup-header {
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .implementation-note {
+            background: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            color: #1565c0;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>🎁 Guest (Anonim) Bağış Akışı - Demo</h1>
+
+        <div class="flow-container">
+            <!-- Step 1 -->
+            <div class="step-card">
+                <div class="step-number">1</div>
+                <h2>Mevcut Durum (Halihazırda Var)</h2>
+                <span class="user-badge guest">👤 Guest User</span>
+                <p><strong>Checkout sayfası zaten bu bilgileri topluyor:</strong></p>
+                <ul class="feature-list">
+                    <li>Full Name (zorunlu) ✅</li>
+                    <li>Email Address (zorunlu) ✅</li>
+                    <li>Phone Number (opsiyonel) ✅</li>
+                    <li>Country (opsiyonel) ✅</li>
+                    <li>Billing Address (opsiyonel) ✅</li>
+                    <li>Payment Information (zorunlu) ✅</li>
+                </ul>
+
+                <div class="implementation-note">
+                    <strong>👍 İyi Haber:</strong> Frontend formu zaten hazır! Sadece backend'e gönderme mantığını
+                    değiştireceğiz.
+                </div>
+            </div>
+
+            <!-- Step 2 -->
+            <div class="step-card">
+                <div class="step-number">2</div>
+                <h2>Cart Yönetimi</h2>
+                <span class="user-badge guest">👤 Guest User</span>
+                <p><strong>Frontend'de localStorage kullan:</strong></p>
+
+                <div class="mockup">
+                    <div class="mockup-header">localStorage → Cart Items:</div>
+                    <pre>[
+  { 
+    campaignId: "uuid-1", 
+    amount: 100,
+    campaignTitle: "Okul Yapımı"
+  },
+  { 
+    campaignId: "uuid-2", 
+    amount: 50,
+    campaignTitle: "Su Kuyusu" 
+  }
+]</pre>
+                </div>
+
+                <p>✅ Login gerektirmeden sepete ekle/çıkar</p>
+                <p>✅ Checkout'a git</p>
+            </div>
+
+            <!-- Step 3 -->
+            <div class="step-card">
+                <div class="step-number">3</div>
+                <h2>Checkout - Form Gönderimi</h2>
+                <span class="user-badge guest">👤 Guest User</span>
+
+                <p><strong>Kullanıcı formu doldurur:</strong></p>
+                <ul class="feature-list">
+                    <li>Name: "Ahmet Yılmaz"</li>
+                    <li>Email: "ahmet@gmail.com"</li>
+                    <li>Phone: "+905551234567"</li>
+                    <li>Card bilgileri</li>
+                </ul>
+
+                <p style="margin-top: 15px;"><strong>Frontend kontrolü yapar:</strong></p>
+                <div class="code-block">
+                    if (!isAuthenticated()) {
+                    // Guest user akışı
+                    apiEndpoint = "/api/v1/guest/checkout"
+                    } else {
+                    // Logged-in user akışı
+                    apiEndpoint = "/api/v1/cart/checkout"
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="arrow">⬇️ TEK API CALL ⬇️</div>
+
+        <div class="flow-container">
+            <!-- Step 4 -->
+            <div class="step-card">
+                <div class="step-number">4</div>
+                <h2>Backend API Request</h2>
+                <span class="user-badge guest">👤 Guest → Backend</span>
+
+                <div class="api-endpoint">POST /api/v1/guest/checkout</div>
+
+                <div class="code-block">
+                    {
+                    "guestEmail": "ahmet@gmail.com",
+                    "guestName": "Ahmet Yılmaz",
+                    "guestPhone": "+905551234567",
+
+                    "cartItems": [
+                    {
+                    "campaignId": "uuid-1",
+                    "amount": 100.00,
+                    "currency": "TRY"
+                    },
+                    {
+                    "campaignId": "uuid-2",
+                    "amount": 50.00,
+                    "currency": "TRY"
+                    }
+                    ],
+
+                    "paymentDetails": {
+                    "cardHolderName": "Ahmet Yılmaz",
+                    "cardNumber": "1234567812345678",
+                    "expireMonth": "12",
+                    "expireYear": "2026",
+                    "cvc": "123"
+                    },
+
+                    "donorMessage": "Hayırlı olsun!",
+                    "isAnonymous": false
+                    }
+                </div>
+            </div>
+
+            <!-- Step 5 -->
+            <div class="step-card">
+                <div class="step-number">5</div>
+                <h2>Backend İşlemleri</h2>
+                <p><strong>Backend tek seferde şunları yapar:</strong></p>
+
+                <ul class="feature-list">
+                    <li>Her cart item için <strong>Donation</strong> oluştur (donor_id = NULL)</li>
+                    <li>Donor bilgileri donation'a kaydet (donorDisplayName, guestEmail)</li>
+                    <li>Payment gateway'e istek gönder</li>
+                    <li>3DS varsa kullanıcıyı yönlendir</li>
+                    <li>Payment başarılıysa Receipt oluştur</li>
+                    <li>Guest email'e receipt gönder</li>
+                </ul>
+
+                <div class="code-block">
+                    // Backend Service
+                    donations.forEach(item -> {
+                    donation.setDonor(null); // ✨ GUEST!
+                    donation.setDonorDisplayName("Ahmet Yılmaz");
+                    donation.setDonorEmail("ahmet@gmail.com");
+                    donation.setIsAnonymous(false);
+                    donationRepo.save(donation);
+                    });
+                </div>
+            </div>
+
+            <!-- Step 6 -->
+            <div class="step-card">
+                <div class="step-number">6</div>
+                <h2>Receipt & Success</h2>
+                <span class="user-badge guest">✅ Başarılı</span>
+
+                <p><strong>Kullanıcıya dönen response:</strong></p>
+
+                <div class="code-block">
+                    {
+                    "success": true,
+                    "receipts": [
+                    {
+                    "receiptId": "uuid-receipt-1",
+                    "campaignTitle": "Okul Yapımı",
+                    "amount": 100.00,
+                    "barcodeData": "RCP-2024-001",
+                    "pdfUrl": "/receipts/download/uuid-1"
+                    },
+                    {
+                    "receiptId": "uuid-receipt-2",
+                    "campaignTitle": "Su Kuyusu",
+                    "amount": 50.00,
+                    "barcodeData": "RCP-2024-002",
+                    "pdfUrl": "/receipts/download/uuid-2"
+                    }
+                    ],
+                    "totalAmount": 150.00,
+                    "guestEmail": "ahmet@gmail.com"
+                    }
+                </div>
+
+                <p style="margin-top: 15px;">📧 <strong>Email'e de receipt PDF gider!</strong></p>
+            </div>
+        </div>
+
+        <!-- Comparison Table -->
+        <div class="comparison-table">
+            <h2>🔍 Guest vs Logged-In Kullanıcı Karşılaştırması</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Özellik</th>
+                        <th>Guest User (Anonim)</th>
+                        <th>Logged-In User</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Cart Saklama</strong></td>
+                        <td>Frontend localStorage</td>
+                        <td>Backend database (PaymentSession)</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Login Gerekli mi?</strong></td>
+                        <td>❌ Hayır</td>
+                        <td>✅ Evet</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Checkout API</strong></td>
+                        <td><code>/api/v1/guest/checkout</code></td>
+                        <td><code>/api/v1/cart/checkout</code></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Donation.donor_id</strong></td>
+                        <td>NULL</td>
+                        <td>User ID</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Email Bilgisi</strong></td>
+                        <td>Form'dan alınır (her seferinde gir)</td>
+                        <td>User profilinden otomatik</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Receipt Gönderimi</strong></td>
+                        <td>Form'daki email'e gönder</td>
+                        <td>Kullanıcının kayıtlı email'i</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Bağış Geçmişi</strong></td>
+                        <td>❌ Göremez (anonim)</td>
+                        <td>✅ Dashboard'da görür</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Manuel İşlem?</strong></td>
+                        <td>Her checkout'ta bilgileri gir</td>
+                        <td>Bilgiler kaydedilmiş</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Implementation Summary -->
+        <div class="comparison-table" style="margin-top: 30px;">
+            <h2>🛠️ Yapılacak İşler (Backend + Frontend)</h2>
+
+            <h3 style="color: #667eea; margin: 20px 0 10px 0;">Backend (Java Spring)</h3>
+            <ul class="feature-list">
+                <li>Yeni endpoint: <code>POST /api/v1/guest/checkout</code></li>
+                <li>GuestCheckoutRequest DTO oluştur</li>
+                <li>GuestDonationService: donation + payment tek işlemde</li>
+                <li>Email guest bilgisini donations tablosuna kaydet</li>
+            </ul>
+
+            <h3 style="color: #667eea; margin: 20px 0 10px 0;">Frontend (React/Next.js)</h3>
+            <ul class="feature-list">
+                <li>CartContext: localStorage'da cart sakla (guest için)</li>
+                <li>Checkout page: isAuthenticated() kontrolü ekle</li>
+                <li>Guest API service oluştur (guestDonationService.ts)</li>
+                <li>Mevcut form kullanılacak - sadece API endpoint değişecek!</li>
+            </ul>
+
+            <div class="implementation-note" style="margin-top: 20px;">
+                <strong>💡 En Önemli Avantaj:</strong> Mevcut checkout formunu kullanıyorsun! Sadece Backend'de yeni bir
+                endpoint + Frontend'de küçük bir API logic değişikliği. Minimal kod değişikliği, maksimum etki!
+            </div>
+        </div>
+
+    </div>
+</body>
+
+</html>
